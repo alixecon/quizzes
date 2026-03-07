@@ -1,128 +1,143 @@
-import { useEffect, useRef } from 'react'
+import { useState } from 'react'
 
-export default function AnimatedBackground({ theme }) {
-  const canvasRef = useRef(null)
+const FACES       = ['😊','😎','🤩','😄','🥳','😤','🧐','🤓','😏','🥸','🦁','🐯','🦊','🐺','🦅','🐉']
+const ACCESSORIES = ['none','🎩','👑','⛑️','🎓','🪖','🧢','👒','🕶️','🎭']
+const BACKGROUNDS = ['🌌','🌊','🏜️','🌲','🌆','🚀','⚡','🔥','💫','🌈']
 
-  useEffect(() => {
-    const canvas = canvasRef.current
-    if (!canvas) return
-    const ctx = canvas.getContext('2d')
-    let animId
-    let W = canvas.width  = window.innerWidth
-    let H = canvas.height = window.innerHeight
+function buildAvatarStr(face, acc) {
+  return acc !== 'none' ? `${acc}${face}` : face
+}
 
-    const resize = () => {
-      W = canvas.width  = window.innerWidth
-      H = canvas.height = window.innerHeight
-    }
-    window.addEventListener('resize', resize)
+export default function ProfileSetup({ initialProfile, theme:T, onSave }) {
+  const init = initialProfile?.avatarObj || { face:'😎', acc:'👑', bg:'🌌' }
+  const [name,  setName]  = useState(initialProfile?.name || '')
+  const [face,  setFace]  = useState(init.face)
+  const [acc,   setAcc]   = useState(init.acc || 'none')
+  const [bg,    setBg]    = useState(init.bg  || '🌌')
+  const [error, setError] = useState('')
+  const [tab,   setTab]   = useState('face')
 
-    // Parse primary color to rgba
-    const hex = theme.primary
-    const r = parseInt(hex.slice(1,3),16)
-    const g = parseInt(hex.slice(3,5),16)
-    const b = parseInt(hex.slice(5,7),16)
-    const primaryRgb = `${r},${g},${b}`
+  const save = () => {
+    const t = name.trim()
+    if (!t)        { setError('يرجى إدخال اسمك'); return }
+    if (t.length<2){ setError('الاسم قصير جداً'); return }
+    onSave({ name:t, avatar:buildAvatarStr(face,acc), avatarObj:{face,acc,bg}, bestScore:initialProfile?.bestScore||0 })
+  }
 
-    const secHex = theme.secondary || '#5ac8fa'
-    const r2 = parseInt(secHex.slice(1,3),16)
-    const g2 = parseInt(secHex.slice(3,5),16)
-    const b2 = parseInt(secHex.slice(5,7),16)
-    const secondaryRgb = `${r2},${g2},${b2}`
-
-    // Particles
-    const PARTICLE_COUNT = 55
-    const particles = Array.from({ length: PARTICLE_COUNT }, (_, i) => ({
-      x: Math.random() * W,
-      y: Math.random() * H,
-      vx: (Math.random() - 0.5) * 0.4,
-      vy: (Math.random() - 0.5) * 0.4,
-      radius: Math.random() * 1.8 + 0.4,
-      alpha: Math.random() * 0.5 + 0.1,
-      color: i % 3 === 0 ? primaryRgb : i % 3 === 1 ? secondaryRgb : '255,255,255',
-    }))
-
-    // Orbs
-    const orbs = [
-      { x: W * 0.15, y: H * 0.2,  radius: 180, vx: 0.18, vy: 0.12, color: primaryRgb,   alpha: 0.08 },
-      { x: W * 0.8,  y: H * 0.6,  radius: 220, vx: -0.14,vy: 0.1,  color: secondaryRgb, alpha: 0.07 },
-      { x: W * 0.5,  y: H * 0.85, radius: 150, vx: 0.1,  vy: -0.15,color: primaryRgb,   alpha: 0.06 },
-    ]
-
-    // Grid lines
-    const GRID_SPACING = 60
-    const gridAlpha = 0.04
-    let gridOffset = 0
-
-    const draw = () => {
-      ctx.clearRect(0, 0, W, H)
-
-      // Scrolling perspective grid
-      gridOffset = (gridOffset + 0.3) % GRID_SPACING
-      ctx.strokeStyle = `rgba(${primaryRgb},${gridAlpha})`
-      ctx.lineWidth = 0.5
-      // Vertical lines
-      for (let x = -GRID_SPACING; x < W + GRID_SPACING; x += GRID_SPACING) {
-        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke()
-      }
-      // Horizontal lines with perspective drift
-      for (let y = -GRID_SPACING + gridOffset; y < H + GRID_SPACING; y += GRID_SPACING) {
-        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke()
-      }
-
-      // Glowing orbs
-      orbs.forEach(orb => {
-        orb.x += orb.vx; orb.y += orb.vy
-        if (orb.x < -orb.radius || orb.x > W + orb.radius) orb.vx *= -1
-        if (orb.y < -orb.radius || orb.y > H + orb.radius) orb.vy *= -1
-        const grad = ctx.createRadialGradient(orb.x, orb.y, 0, orb.x, orb.y, orb.radius)
-        grad.addColorStop(0,   `rgba(${orb.color},${orb.alpha * 2.5})`)
-        grad.addColorStop(0.4, `rgba(${orb.color},${orb.alpha})`)
-        grad.addColorStop(1,   `rgba(${orb.color},0)`)
-        ctx.fillStyle = grad
-        ctx.beginPath(); ctx.arc(orb.x, orb.y, orb.radius, 0, Math.PI * 2); ctx.fill()
-      })
-
-      // Particles + connections
-      particles.forEach((p, i) => {
-        p.x += p.vx; p.y += p.vy
-        if (p.x < 0) p.x = W; if (p.x > W) p.x = 0
-        if (p.y < 0) p.y = H; if (p.y > H) p.y = 0
-
-        // Draw particle
-        ctx.beginPath()
-        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2)
-        ctx.fillStyle = `rgba(${p.color},${p.alpha})`
-        ctx.fill()
-
-        // Connect nearby particles
-        for (let j = i + 1; j < particles.length; j++) {
-          const q    = particles[j]
-          const dist = Math.hypot(p.x - q.x, p.y - q.y)
-          if (dist < 100) {
-            ctx.beginPath()
-            ctx.moveTo(p.x, p.y); ctx.lineTo(q.x, q.y)
-            ctx.strokeStyle = `rgba(${p.color},${(1 - dist / 100) * 0.12})`
-            ctx.lineWidth   = 0.5
-            ctx.stroke()
-          }
-        }
-      })
-
-      animId = requestAnimationFrame(draw)
-    }
-
-    draw()
-    return () => { cancelAnimationFrame(animId); window.removeEventListener('resize', resize) }
-  }, [theme.primary, theme.secondary])
+  const Row = ({items, selected, onSelect}) => (
+    <div style={{ display:'flex', gap:'8px', flexWrap:'wrap' }}>
+      {items.map(it=>(
+        <button key={it} onClick={()=>onSelect(it)} style={{
+          width:'44px', height:'44px', fontSize:'1.4rem', borderRadius:'2px', cursor:'pointer',
+          border:`2px solid ${it===selected ? T.primary : T.border}`,
+          background: it===selected ? `${T.primary}22` : T.bgCard,
+          display:'flex', alignItems:'center', justifyContent:'center',
+          boxShadow: it===selected ? `2px 2px 0 ${T.primary}` : 'none',
+          transition:'all 0.1s',
+        }}>
+          {it==='none'?'✕':it}
+        </button>
+      ))}
+    </div>
+  )
 
   return (
-    <canvas
-      ref={canvasRef}
-      style={{
-        position: 'fixed', inset: 0, zIndex: 0,
-        pointerEvents: 'none', opacity: 1,
-      }}
-    />
+    <div style={{ minHeight:'100dvh', background:T.bg, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:'24px 20px' }}>
+
+      {/* Back button */}
+      <div style={{ width:'100%', maxWidth:'420px', marginBottom:'16px' }}>
+        <button onClick={()=>onSave(initialProfile||null)} style={{
+          background:'transparent', border:`2px solid ${T.border}`, borderRadius:'2px',
+          color:T.textMuted, fontFamily:'Tajawal,sans-serif', fontWeight:700,
+          padding:'8px 16px', cursor:'pointer', fontSize:'0.9rem',
+          boxShadow:`2px 2px 0 ${T.border}`,
+        }}>
+          ← رجوع
+        </button>
+      </div>
+
+      <div style={{ width:'100%', maxWidth:'420px' }}>
+        <h2 style={{ fontFamily:'Tajawal,sans-serif', fontWeight:900, fontSize:'2rem', color:T.text, marginBottom:'4px' }}>
+          {initialProfile ? 'تعديل الملف ✏️' : 'إنشاء الملف 👤'}
+        </h2>
+        <p style={{ color:T.textMuted, fontSize:'0.88rem', marginBottom:'24px', fontFamily:'IBM Plex Mono,monospace' }}>
+          BUILD YOUR CHARACTER
+        </p>
+
+        {/* Preview */}
+        <div style={{ display:'flex', alignItems:'center', gap:'16px', marginBottom:'24px',
+          padding:'16px', background:T.bgCard, border:`2px solid ${T.border}`, borderRadius:'2px', boxShadow:T.shadowCard }}>
+          <div style={{
+            width:'64px', height:'64px', borderRadius:'2px',
+            background:T.bgElevated, border:`2px solid ${T.primary}`,
+            display:'flex', alignItems:'center', justifyContent:'center',
+            fontSize:'2rem', flexShrink:0, position:'relative', overflow:'hidden',
+            boxShadow:`3px 3px 0 ${T.primary}`,
+          }}>
+            <span style={{ position:'absolute', fontSize:'2.5rem', opacity:0.15 }}>{bg}</span>
+            <span style={{ position:'relative', zIndex:1 }}>
+              {acc!=='none'&&<span style={{fontSize:'1.2rem',display:'block',textAlign:'center',lineHeight:1}}>{acc}</span>}
+              <span style={{fontSize:'1.8rem',display:'block',textAlign:'center',lineHeight:1}}>{face}</span>
+            </span>
+          </div>
+          <div>
+            <div style={{ color:T.text, fontFamily:'Tajawal,sans-serif', fontWeight:800, fontSize:'1.1rem' }}>{name||'اسمك هنا'}</div>
+            <div style={{ color:T.textMuted, fontFamily:'IBM Plex Mono,monospace', fontSize:'0.72rem', marginTop:'2px' }}>BEST: {initialProfile?.bestScore||0}pts</div>
+          </div>
+        </div>
+
+        {/* Name */}
+        <div style={{ marginBottom:'20px' }}>
+          <label style={{ display:'block', color:T.textMuted, fontFamily:'IBM Plex Mono,monospace', fontSize:'0.75rem', letterSpacing:'0.08em', marginBottom:'8px' }}>
+            DISPLAY NAME
+          </label>
+          <input value={name} onChange={e=>{setName(e.target.value);setError('')}} placeholder="أدخل اسمك..." maxLength={20}
+            style={{
+              width:'100%', padding:'14px 16px', borderRadius:'2px',
+              border:`2px solid ${error?T.error:T.border}`, background:T.bgCard,
+              color:T.text, fontSize:'1rem', fontFamily:'Tajawal,sans-serif', outline:'none',
+              boxShadow:`3px 3px 0 ${error?T.error:T.border}`,
+            }}
+            onFocus={e=>e.target.style.borderColor=T.primary}
+            onBlur={e=>e.target.style.borderColor=error?T.error:T.border}
+          />
+          {error&&<div style={{color:T.error,fontSize:'0.8rem',marginTop:'4px'}}>{error}</div>}
+        </div>
+
+        {/* Builder tabs */}
+        <div style={{ display:'flex', gap:'8px', marginBottom:'14px' }}>
+          {[['face','😊 وجه'],['acc','🎩 إكسسوار'],['bg','🌌 خلفية']].map(([id,label])=>(
+            <button key={id} onClick={()=>setTab(id)} style={{
+              flex:1, padding:'9px', borderRadius:'2px', cursor:'pointer',
+              fontFamily:'Tajawal,sans-serif', fontWeight:700, fontSize:'0.8rem',
+              border:`2px solid ${tab===id?T.primary:T.border}`,
+              background:tab===id?T.primary:'transparent',
+              color:tab===id?T.primaryText:T.textMuted,
+              boxShadow:tab===id?`2px 2px 0 ${T.border}`:'none',
+            }}>{label}</button>
+          ))}
+        </div>
+
+        <div style={{ padding:'16px', background:T.bgCard, border:`2px solid ${T.border}`, borderRadius:'2px', marginBottom:'20px', boxShadow:T.shadowCard }}>
+          {tab==='face' && <Row items={FACES}       selected={face} onSelect={setFace} />}
+          {tab==='acc'  && <Row items={ACCESSORIES} selected={acc}  onSelect={setAcc}  />}
+          {tab==='bg'   && <Row items={BACKGROUNDS} selected={bg}   onSelect={setBg}   />}
+        </div>
+
+        {/* Save */}
+        <button onClick={save} style={{
+          width:'100%', padding:'18px', borderRadius:'2px', cursor:'pointer',
+          fontFamily:'Tajawal,sans-serif', fontWeight:900, fontSize:'1.15rem',
+          background:T.primary, color:T.primaryText,
+          border:`2px solid ${T.primary}`, boxShadow:T.shadowCard,
+          transition:'transform 0.1s, box-shadow 0.1s',
+        }}
+          onMouseEnter={e=>{e.currentTarget.style.transform='translate(-2px,-2px)';e.currentTarget.style.boxShadow=`7px 7px 0 ${T.secondary}`}}
+          onMouseLeave={e=>{e.currentTarget.style.transform='translate(0,0)';e.currentTarget.style.boxShadow=T.shadowCard}}
+        >
+          حفظ الملف ✓
+        </button>
+      </div>
+    </div>
   )
 }
