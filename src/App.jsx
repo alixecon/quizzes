@@ -4,69 +4,65 @@ import { useSound } from './hooks/useSound'
 import { themes, defaultTheme } from './styles/themes'
 import { questions } from './data/questions'
 
-import HomeScreen       from './components/HomeScreen'
-import ProfileSetup     from './components/ProfileSetup'
-import ModeSelect       from './components/ModeSelect'
-import CategorySelect   from './components/CategorySelect'
-import DifficultySelect from './components/DifficultySelect'
-import QuizScreen       from './components/QuizScreen'
-import ResultScreen     from './components/ResultScreen'
-import PuzzleSelect     from './components/PuzzleSelect'
-import ArabicWordle     from './components/ArabicWordle'
-import Sudoku           from './components/Sudoku'
-import AnimatedBackground from './components/AnimatedBackground'   
-
+import AnimatedBackground    from './components/AnimatedBackground'
+import HomeScreen            from './components/HomeScreen'
+import ProfileSetup          from './components/ProfileSetup'
+import CategorySelect        from './components/CategorySelect'
+import DifficultySelect      from './components/DifficultySelect'
+import QuizScreen            from './components/QuizScreen'
+import ResultScreen          from './components/ResultScreen'
+import PuzzleSelect          from './components/PuzzleSelect'
+import ArabicWordle          from './components/ArabicWordle'
+import Sudoku                from './components/Sudoku'
 
 const QUESTIONS_PER_GAME = 10
 
 function shuffleArray(arr) {
   const a = [...arr]
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]]
+  for (let i = a.length-1; i > 0; i--) {
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]] = [a[j],a[i]]
   }
   return a
+}
+
+// Difficulty progression: unlock medium after 1 easy win, hard after 1 medium win
+function getUnlockedDifficulties(stats) {
+  const unlocked = ['easy']
+  if ((stats?.easyWins  || 0) >= 1) unlocked.push('medium')
+  if ((stats?.mediumWins|| 0) >= 1) unlocked.push('hard')
+  return unlocked
 }
 
 export default function App() {
   const [themeId,      setThemeId]      = useLocalStorage('aq_theme',   defaultTheme)
   const [soundEnabled, setSoundEnabled] = useLocalStorage('aq_sound',   true)
   const [profile,      setProfile]      = useLocalStorage('aq_profile', null)
+  const [stats,        setStats]        = useLocalStorage('aq_stats',   { easyWins:0, mediumWins:0 })
 
   const [screen,        setScreen]        = useState('home')
-  const [gameMode,      setGameMode]      = useState('normal')
   const [categoryId,    setCategoryId]    = useState(null)
-  const [difficulty,    setDifficulty]    = useState('medium')
+  const [difficulty,    setDifficulty]    = useState('easy')
   const [gameQuestions, setGameQuestions] = useState([])
   const [lastScore,     setLastScore]     = useState(0)
 
-  // ── Fix: if saved themeId no longer exists, reset to default ──
   const safeThemeId = themes[themeId] ? themeId : defaultTheme
-  const theme = themes[safeThemeId]
+  const theme       = themes[safeThemeId]
 
-  useEffect(() => {
-    if (!themes[themeId]) setThemeId(defaultTheme)
-  }, [])
+  useEffect(() => { if (!themes[themeId]) setThemeId(defaultTheme) }, [])
 
-  const sounds = useSound(soundEnabled)
+  const sounds   = useSound(soundEnabled)
+  const unlocked = getUnlockedDifficulties(stats)
 
   const maxScore = useMemo(() => {
-    const mult = { easy: 1, medium: 2, hard: 3 }[difficulty] || 1
-    const pts  = gameMode === 'timed' ? (10 * mult) + (20 * 0.5) : 10 * mult
-    return Math.round(gameQuestions.length * pts)
-  }, [gameQuestions, difficulty, gameMode])
+    const mult = { easy:1, medium:2, hard:3 }[difficulty] || 1
+    return gameQuestions.length * 10 * mult
+  }, [gameQuestions, difficulty])
 
   const handleStart = () => {
     sounds.click()
     if (!profile) { setScreen('profile'); return }
-    setScreen('mode')
-  }
-
-  const handleModeSelect = (mode) => {
-    sounds.click()
-    setGameMode(mode)
-    if (mode === 'category') { setScreen('category'); return }
-    setScreen('difficulty')
+    setScreen('category')
   }
 
   const handleCategorySelect = (catId) => {
@@ -88,22 +84,37 @@ export default function App() {
     if (categoryId) pool = pool.filter(q => q.category === categoryId)
     if (pool.length === 0) pool = questions.filter(q => q.difficulty === diff)
     if (pool.length === 0) pool = questions
-    const selected = shuffleArray(pool).slice(0, QUESTIONS_PER_GAME)
-    setGameQuestions(selected)
+    setGameQuestions(shuffleArray(pool).slice(0, QUESTIONS_PER_GAME))
     sounds.start()
     setScreen('quiz')
   }
 
-  const handleFinish         = (score) => { setLastScore(score); setScreen('result') }
-  const handleUpdateBestScore = (score) => setProfile(p => ({ ...p, bestScore: score }))
-  const handleRestart        = () => { sounds.click(); setCategoryId(null); setScreen('mode') }
-  const handleHome           = () => { sounds.click(); setCategoryId(null); setGameQuestions([]); setScreen('home') }
-  const handleSaveProfile    = (p) => { setProfile(p); setScreen(!profile ? 'mode' : 'home') }
+  const handleFinish = (score) => {
+    setLastScore(score)
+    // Award win for progression
+    const pct = maxScore > 0 ? score / maxScore : 0
+    if (pct >= 0.5) {
+      setStats(s => ({
+        ...s,
+        easyWins:   difficulty === 'easy'   ? (s.easyWins||0)+1   : (s.easyWins||0),
+        mediumWins: difficulty === 'medium' ? (s.mediumWins||0)+1 : (s.mediumWins||0),
+      }))
+    }
+    setScreen('result')
+  }
 
-  // Guard — never render with undefined theme
+  const handleUpdateBestScore = (score) => setProfile(p => ({ ...p, bestScore: score }))
+  const handleRestart  = () => { sounds.click(); setCategoryId(null); setScreen('category') }
+  const handleHome     = () => { sounds.click(); setCategoryId(null); setGameQuestions([]); setScreen('home') }
+  const handleSaveProfile = (p) => {
+    setProfile(p)
+    // Fix: always go home after saving, whether new or editing
+    setScreen('home')
+  }
+
   if (!theme) return (
-    <div style={{ minHeight: '100dvh', background: '#0a0a0f', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <div style={{ color: '#fff', fontFamily: 'Cairo, sans-serif', fontSize: '1.2rem' }}>جاري التحميل...</div>
+    <div style={{ minHeight:'100dvh', background:'#08080f', display:'flex', alignItems:'center', justifyContent:'center' }}>
+      <div style={{ color:'#fff', fontFamily:'Cairo, sans-serif', fontSize:'1.2rem' }}>جاري التحميل...</div>
     </div>
   )
 
@@ -111,6 +122,7 @@ export default function App() {
     <div style={{ background: theme.bg, minHeight: '100dvh', position: 'relative' }}>
       <AnimatedBackground theme={theme} />
       <div style={{ position: 'relative', zIndex: 1 }}>
+
         {screen === 'home' && (
           <HomeScreen
             profile={profile} theme={theme} themeId={safeThemeId}
@@ -124,11 +136,8 @@ export default function App() {
         {screen === 'profile' && (
           <ProfileSetup initialProfile={profile} theme={theme} onSave={handleSaveProfile} />
         )}
-        {screen === 'mode' && (
-          <ModeSelect theme={theme} onSelect={handleModeSelect} onBack={handleHome} />
-        )}
         {screen === 'category' && (
-          <CategorySelect theme={theme} onSelect={handleCategorySelect} onBack={() => setScreen('mode')} />
+          <CategorySelect theme={theme} onSelect={handleCategorySelect} onBack={handleHome} />
         )}
         {screen === 'puzzles' && (
           <PuzzleSelect theme={theme} onSelect={handlePuzzleSelect} onBack={() => setScreen('category')} />
@@ -142,13 +151,14 @@ export default function App() {
         {screen === 'difficulty' && (
           <DifficultySelect
             theme={theme} onSelect={handleDifficultySelect}
-            onBack={() => setScreen(gameMode === 'category' ? 'category' : 'mode')}
+            unlocked={unlocked}
+            onBack={() => setScreen('category')}
           />
         )}
         {screen === 'quiz' && gameQuestions.length > 0 && (
           <QuizScreen
             questions={gameQuestions} difficulty={difficulty}
-            mode={gameMode} theme={theme} sounds={sounds} onFinish={handleFinish}
+            mode="category" theme={theme} sounds={sounds} onFinish={handleFinish}
           />
         )}
         {screen === 'result' && (
@@ -159,7 +169,8 @@ export default function App() {
             onUpdateBestScore={handleUpdateBestScore}
           />
         )}
+
       </div>
-    </div>  )
-  
+    </div>
+  )
 }

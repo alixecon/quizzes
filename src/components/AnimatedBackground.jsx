@@ -1,5 +1,13 @@
 import { useEffect, useRef } from 'react'
 
+function hexToRgb(hex) {
+  if (!hex || hex.length < 7) return '255,255,255'
+  const r = parseInt(hex.slice(1,3),16)
+  const g = parseInt(hex.slice(3,5),16)
+  const b = parseInt(hex.slice(5,7),16)
+  return `${r},${g},${b}`
+}
+
 export default function AnimatedBackground({ theme }) {
   const canvasRef = useRef(null)
 
@@ -11,101 +19,78 @@ export default function AnimatedBackground({ theme }) {
     let W = canvas.width  = window.innerWidth
     let H = canvas.height = window.innerHeight
 
-    const resize = () => {
-      W = canvas.width  = window.innerWidth
-      H = canvas.height = window.innerHeight
-    }
+    const resize = () => { W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight }
     window.addEventListener('resize', resize)
 
-    const hex = theme.primary || '#7c6af7'
-    const r = parseInt(hex.slice(1,3),16)
-    const g = parseInt(hex.slice(3,5),16)
-    const b = parseInt(hex.slice(5,7),16)
-    const primaryRgb = `${r},${g},${b}`
-
-    const secHex = theme.secondary || '#5ac8fa'
-    const r2 = parseInt(secHex.slice(1,3),16)
-    const g2 = parseInt(secHex.slice(3,5),16)
-    const b2 = parseInt(secHex.slice(5,7),16)
-    const secondaryRgb = `${r2},${g2},${b2}`
-
-    const PARTICLE_COUNT = 55
-    const particles = Array.from({ length: PARTICLE_COUNT }, (_, i) => ({
-      x: Math.random() * W,
-      y: Math.random() * H,
-      vx: (Math.random() - 0.5) * 0.4,
-      vy: (Math.random() - 0.5) * 0.4,
-      radius: Math.random() * 1.8 + 0.4,
-      alpha: Math.random() * 0.5 + 0.1,
-      color: i % 3 === 0 ? primaryRgb : i % 3 === 1 ? secondaryRgb : '255,255,255',
-    }))
+    const c1 = hexToRgb(theme.bgOrb1 || theme.primary)
+    const c2 = hexToRgb(theme.bgOrb2 || theme.secondary)
+    const c3 = hexToRgb(theme.bgOrb3 || theme.accent)
+    const cg = hexToRgb(theme.bgGrid || theme.primary)
 
     const orbs = [
-      { x: W * 0.15, y: H * 0.2,  radius: 180, vx: 0.18,  vy: 0.12,  color: primaryRgb,   alpha: 0.08 },
-      { x: W * 0.8,  y: H * 0.6,  radius: 220, vx: -0.14, vy: 0.1,   color: secondaryRgb, alpha: 0.07 },
-      { x: W * 0.5,  y: H * 0.85, radius: 150, vx: 0.1,   vy: -0.15, color: primaryRgb,   alpha: 0.06 },
+      { x: W*0.12, y: H*0.18, r: 260, vx: 0.22,  vy: 0.14,  color: c1, alpha: 0.13 },
+      { x: W*0.82, y: H*0.55, r: 300, vx: -0.16, vy: 0.12,  color: c2, alpha: 0.10 },
+      { x: W*0.50, y: H*0.88, r: 200, vx: 0.12,  vy: -0.18, color: c3, alpha: 0.09 },
+      { x: W*0.70, y: H*0.15, r: 160, vx: -0.20, vy: 0.20,  color: c1, alpha: 0.07 },
     ]
 
-    const GRID_SPACING = 60
-    let gridOffset = 0
+    const PTOTAL = 60
+    const pts = Array.from({ length: PTOTAL }, (_, i) => ({
+      x: Math.random()*W, y: Math.random()*H,
+      vx: (Math.random()-0.5)*0.45, vy: (Math.random()-0.5)*0.45,
+      r: Math.random()*1.6+0.4,
+      a: Math.random()*0.45+0.08,
+      color: i%3===0 ? c1 : i%3===1 ? c2 : c3,
+    }))
+
+    const GS = 65
+    let go = 0
 
     const draw = () => {
-      ctx.clearRect(0, 0, W, H)
+      ctx.clearRect(0,0,W,H)
 
-      gridOffset = (gridOffset + 0.3) % GRID_SPACING
-      ctx.strokeStyle = `rgba(${primaryRgb},0.04)`
+      // Grid
+      go = (go + 0.25) % GS
       ctx.lineWidth = 0.5
-      for (let x = 0; x < W + GRID_SPACING; x += GRID_SPACING) {
-        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke()
-      }
-      for (let y = -GRID_SPACING + gridOffset; y < H + GRID_SPACING; y += GRID_SPACING) {
-        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke()
-      }
+      ctx.strokeStyle = `rgba(${cg},0.035)`
+      for (let x = 0; x < W+GS; x += GS) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,H); ctx.stroke() }
+      for (let y = -GS+go; y < H+GS; y += GS) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke() }
 
-      orbs.forEach(orb => {
-        orb.x += orb.vx; orb.y += orb.vy
-        if (orb.x < -orb.radius || orb.x > W + orb.radius) orb.vx *= -1
-        if (orb.y < -orb.radius || orb.y > H + orb.radius) orb.vy *= -1
-        const grad = ctx.createRadialGradient(orb.x, orb.y, 0, orb.x, orb.y, orb.radius)
-        grad.addColorStop(0,   `rgba(${orb.color},${orb.alpha * 2.5})`)
-        grad.addColorStop(0.4, `rgba(${orb.color},${orb.alpha})`)
-        grad.addColorStop(1,   `rgba(${orb.color},0)`)
-        ctx.fillStyle = grad
-        ctx.beginPath(); ctx.arc(orb.x, orb.y, orb.radius, 0, Math.PI * 2); ctx.fill()
+      // Orbs
+      orbs.forEach(o => {
+        o.x += o.vx; o.y += o.vy
+        if (o.x < -o.r || o.x > W+o.r) o.vx *= -1
+        if (o.y < -o.r || o.y > H+o.r) o.vy *= -1
+        const g = ctx.createRadialGradient(o.x,o.y,0,o.x,o.y,o.r)
+        g.addColorStop(0,   `rgba(${o.color},${o.alpha*2.8})`)
+        g.addColorStop(0.4, `rgba(${o.color},${o.alpha})`)
+        g.addColorStop(1,   `rgba(${o.color},0)`)
+        ctx.fillStyle = g
+        ctx.beginPath(); ctx.arc(o.x,o.y,o.r,0,Math.PI*2); ctx.fill()
       })
 
-      particles.forEach((p, i) => {
+      // Particles + connections
+      pts.forEach((p,i) => {
         p.x += p.vx; p.y += p.vy
-        if (p.x < 0) p.x = W; if (p.x > W) p.x = 0
-        if (p.y < 0) p.y = H; if (p.y > H) p.y = 0
-        ctx.beginPath()
-        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2)
-        ctx.fillStyle = `rgba(${p.color},${p.alpha})`
-        ctx.fill()
-        for (let j = i + 1; j < particles.length; j++) {
-          const q = particles[j]
-          const dist = Math.hypot(p.x - q.x, p.y - q.y)
-          if (dist < 100) {
-            ctx.beginPath()
-            ctx.moveTo(p.x, p.y); ctx.lineTo(q.x, q.y)
-            ctx.strokeStyle = `rgba(${p.color},${(1 - dist / 100) * 0.12})`
-            ctx.lineWidth = 0.5
-            ctx.stroke()
+        if (p.x<0) p.x=W; if (p.x>W) p.x=0
+        if (p.y<0) p.y=H; if (p.y>H) p.y=0
+        ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2)
+        ctx.fillStyle = `rgba(${p.color},${p.a})`; ctx.fill()
+        for (let j=i+1; j<pts.length; j++) {
+          const q = pts[j], d = Math.hypot(p.x-q.x,p.y-q.y)
+          if (d < 110) {
+            ctx.beginPath(); ctx.moveTo(p.x,p.y); ctx.lineTo(q.x,q.y)
+            ctx.strokeStyle = `rgba(${p.color},${(1-d/110)*0.1})`
+            ctx.lineWidth = 0.5; ctx.stroke()
           }
         }
       })
 
       animId = requestAnimationFrame(draw)
     }
-
     draw()
     return () => { cancelAnimationFrame(animId); window.removeEventListener('resize', resize) }
-  }, [theme.primary, theme.secondary])
+  }, [theme.id])
 
-  return (
-    <canvas
-      ref={canvasRef}
-      style={{ position: 'fixed', inset: 0, zIndex: 0, pointerEvents: 'none' }}
-    />
-  )
+  return <canvas ref={canvasRef} style={{ position:'fixed', inset:0, zIndex:0, pointerEvents:'none' }} />
 }
