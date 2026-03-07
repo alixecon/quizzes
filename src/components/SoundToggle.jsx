@@ -1,24 +1,12 @@
 export default function SoundToggle({ enabled, onToggle, theme }) {
   return (
-    <button
-      onClick={onToggle}
-      title={enabled ? 'كتم الصوت' : 'تشغيل الصوت'}
-      style={{
-        width: '44px',
-        height: '44px',
-        borderRadius: '50%',
-        border: `1.5px solid ${enabled ? theme.primary : 'rgba(255,255,255,0.15)'}`,
-        background: enabled ? `${theme.primary}22` : 'rgba(255,255,255,0.06)',
-        color: enabled ? theme.primary : theme.textMuted,
-        fontSize: '1.3rem',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        cursor: 'pointer',
-        transition: 'all 0.25s ease',
-        flexShrink: 0,
-      }}
-    >
+    <button onClick={onToggle} style={{
+      padding:'7px 12px', borderRadius:'4px', cursor:'pointer',
+      background:'transparent', border:`2px solid ${theme.border}`,
+      color:theme.textMuted, fontSize:'1rem',
+      boxShadow:`2px 2px 0px ${theme.borderStrong}`,
+      transition:'all 0.1s',
+    }}>
       {enabled ? '🔊' : '🔇'}
     </button>
   )
