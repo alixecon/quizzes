@@ -14,6 +14,8 @@ import ResultScreen     from './components/ResultScreen'
 import PuzzleSelect     from './components/PuzzleSelect'
 import ArabicWordle     from './components/ArabicWordle'
 import Sudoku           from './components/Sudoku'
+import AnimatedBackground from './components/AnimatedBackground'   
+
 
 const QUESTIONS_PER_GAME = 10
 
@@ -106,55 +108,58 @@ export default function App() {
   )
 
   return (
-    <div style={{ background: theme.bg, minHeight: '100dvh' }}>
-      {screen === 'home' && (
-        <HomeScreen
-          profile={profile} theme={theme} themeId={safeThemeId}
-          onThemeChange={id => { setThemeId(id); sounds.click() }}
-          soundEnabled={soundEnabled}
-          onSoundToggle={() => setSoundEnabled(s => !s)}
-          onStart={handleStart}
-          onEditProfile={() => setScreen('profile')}
-        />
-      )}
-      {screen === 'profile' && (
-        <ProfileSetup initialProfile={profile} theme={theme} onSave={handleSaveProfile} />
-      )}
-      {screen === 'mode' && (
-        <ModeSelect theme={theme} onSelect={handleModeSelect} onBack={handleHome} />
-      )}
-      {screen === 'category' && (
-        <CategorySelect theme={theme} onSelect={handleCategorySelect} onBack={() => setScreen('mode')} />
-      )}
-      {screen === 'puzzles' && (
-        <PuzzleSelect theme={theme} onSelect={handlePuzzleSelect} onBack={() => setScreen('category')} />
-      )}
-      {screen === 'wordle' && (
-        <ArabicWordle theme={theme} sounds={sounds} onBack={() => setScreen('puzzles')} />
-      )}
-      {screen === 'sudoku' && (
-        <Sudoku theme={theme} sounds={sounds} onBack={() => setScreen('puzzles')} />
-      )}
-      {screen === 'difficulty' && (
-        <DifficultySelect
-          theme={theme} onSelect={handleDifficultySelect}
-          onBack={() => setScreen(gameMode === 'category' ? 'category' : 'mode')}
-        />
-      )}
-      {screen === 'quiz' && gameQuestions.length > 0 && (
-        <QuizScreen
-          questions={gameQuestions} difficulty={difficulty}
-          mode={gameMode} theme={theme} sounds={sounds} onFinish={handleFinish}
-        />
-      )}
-      {screen === 'result' && (
-        <ResultScreen
-          score={lastScore} total={gameQuestions.length} maxScore={maxScore}
-          profile={profile} theme={theme}
-          onRestart={handleRestart} onHome={handleHome}
-          onUpdateBestScore={handleUpdateBestScore}
-        />
-      )}
-    </div>
-  )
+    <div style={{ background: theme.bg, minHeight: '100dvh', position: 'relative' }}>
+      <AnimatedBackground theme={theme} />
+      <div style={{ position: 'relative', zIndex: 1 }}>
+        {screen === 'home' && (
+          <HomeScreen
+            profile={profile} theme={theme} themeId={safeThemeId}
+            onThemeChange={id => { setThemeId(id); sounds.click() }}
+            soundEnabled={soundEnabled}
+            onSoundToggle={() => setSoundEnabled(s => !s)}
+            onStart={handleStart}
+            onEditProfile={() => setScreen('profile')}
+          />
+        )}
+        {screen === 'profile' && (
+          <ProfileSetup initialProfile={profile} theme={theme} onSave={handleSaveProfile} />
+        )}
+        {screen === 'mode' && (
+          <ModeSelect theme={theme} onSelect={handleModeSelect} onBack={handleHome} />
+        )}
+        {screen === 'category' && (
+          <CategorySelect theme={theme} onSelect={handleCategorySelect} onBack={() => setScreen('mode')} />
+        )}
+        {screen === 'puzzles' && (
+          <PuzzleSelect theme={theme} onSelect={handlePuzzleSelect} onBack={() => setScreen('category')} />
+        )}
+        {screen === 'wordle' && (
+          <ArabicWordle theme={theme} sounds={sounds} onBack={() => setScreen('puzzles')} />
+        )}
+        {screen === 'sudoku' && (
+          <Sudoku theme={theme} sounds={sounds} onBack={() => setScreen('puzzles')} />
+        )}
+        {screen === 'difficulty' && (
+          <DifficultySelect
+            theme={theme} onSelect={handleDifficultySelect}
+            onBack={() => setScreen(gameMode === 'category' ? 'category' : 'mode')}
+          />
+        )}
+        {screen === 'quiz' && gameQuestions.length > 0 && (
+          <QuizScreen
+            questions={gameQuestions} difficulty={difficulty}
+            mode={gameMode} theme={theme} sounds={sounds} onFinish={handleFinish}
+          />
+        )}
+        {screen === 'result' && (
+          <ResultScreen
+            score={lastScore} total={gameQuestions.length} maxScore={maxScore}
+            profile={profile} theme={theme}
+            onRestart={handleRestart} onHome={handleHome}
+            onUpdateBestScore={handleUpdateBestScore}
+          />
+        )}
+      </div>
+    </div>  )
+  
 }
