@@ -2,7 +2,6 @@ import { useEffect, useRef } from 'react'
 
 export default function AnimatedBackground({ theme }) {
   const canvasRef = useRef(null)
-
   useEffect(() => {
     const canvas = canvasRef.current
     if (!canvas) return
@@ -12,42 +11,26 @@ export default function AnimatedBackground({ theme }) {
     let H = canvas.height = window.innerHeight
     const resize = () => { W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight }
     window.addEventListener('resize', resize)
-
     const isDark = theme.id === 'dark'
-    const dotColor = isDark ? '232,255,71' : '0,0,0'
-    const lineColor = isDark ? '255,255,255' : '0,0,0'
-
-    // Sparse dot grid
-    const DOT_SPACING = 40
+    const dot = isDark ? '255,255,255' : '0,0,0'
+    const D = 44
     let scanY = 0
-
     const draw = () => {
       ctx.clearRect(0,0,W,H)
-
-      // Dot grid
-      for (let x = DOT_SPACING; x < W; x += DOT_SPACING) {
-        for (let y = DOT_SPACING; y < H; y += DOT_SPACING) {
-          ctx.beginPath()
-          ctx.arc(x, y, 1, 0, Math.PI*2)
-          ctx.fillStyle = `rgba(${dotColor},0.12)`
-          ctx.fill()
-        }
+      for (let x=D; x<W; x+=D) for (let y=D; y<H; y+=D) {
+        ctx.beginPath(); ctx.arc(x,y,1,0,Math.PI*2)
+        ctx.fillStyle=`rgba(${dot},0.1)`; ctx.fill()
       }
-
-      // Moving horizontal scanline
-      scanY = (scanY + 0.6) % H
-      const grad = ctx.createLinearGradient(0, scanY-60, 0, scanY+60)
-      grad.addColorStop(0,   `rgba(${lineColor},0)`)
-      grad.addColorStop(0.5, `rgba(${lineColor},0.025)`)
-      grad.addColorStop(1,   `rgba(${lineColor},0)`)
-      ctx.fillStyle = grad
-      ctx.fillRect(0, scanY-60, W, 120)
-
-      animId = requestAnimationFrame(draw)
+      scanY=(scanY+0.5)%H
+      const g=ctx.createLinearGradient(0,scanY-80,0,scanY+80)
+      g.addColorStop(0,`rgba(${dot},0)`)
+      g.addColorStop(0.5,`rgba(${dot},0.02)`)
+      g.addColorStop(1,`rgba(${dot},0)`)
+      ctx.fillStyle=g; ctx.fillRect(0,scanY-80,W,160)
+      animId=requestAnimationFrame(draw)
     }
     draw()
-    return () => { cancelAnimationFrame(animId); window.removeEventListener('resize', resize) }
+    return () => { cancelAnimationFrame(animId); window.removeEventListener('resize',resize) }
   }, [theme.id])
-
-  return <canvas ref={canvasRef} style={{ position:'fixed', inset:0, zIndex:0, pointerEvents:'none' }} />
+  return <canvas ref={canvasRef} style={{position:'fixed',inset:0,zIndex:0,pointerEvents:'none'}} />
 }

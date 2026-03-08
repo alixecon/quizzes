@@ -2,95 +2,101 @@ export const themes = {
   dark: {
     id: 'dark',
     name: 'داكن',
-    emoji: '◼',
 
-    // Backgrounds
-    bg: '#0a0a0a',
-    bgSurface: '#111111',
-    bgElevated: '#1a1a1a',
-    bgCard: '#141414',
+    // Page backgrounds
+    bg:         '#0f0f0f',
+    bgCard:     '#1a1a1a',
+    bgElevated: '#242424',
+    bgAccent:   '#3d3df7',   // GRIPH electric blue
 
     // Borders
-    border: '#2a2a2a',
-    borderStrong: '#3a3a3a',
-    borderAccent: '#e8ff47',
+    border:       '#2e2e2e',
+    borderStrong: '#ffffff',
 
     // Text
-    text: '#f0f0f0',
-    textMuted: '#888888',
-    textSubtle: '#444444',
-    textInverse: '#0a0a0a',
+    text:        '#f5f0e8',
+    textMuted:   '#888888',
+    textSubtle:  '#444444',
+    textInverse: '#0f0f0f',
 
-    // Accent — GRIPH-style vivid yellow-green
-    primary: '#e8ff47',
-    primaryHover: '#d4eb2a',
-    primaryText: '#0a0a0a',
+    // Primary accent — GRIPH electric blue
+    primary:     '#3d3df7',
+    primaryText: '#ffffff',
+
+    // Secondary accent — GRIPH hot pink
+    secondary:     '#ff4ecd',
+    secondaryText: '#ffffff',
+
+    // Tertiary — cream
+    tertiary:     '#f5f0e8',
+    tertiaryText: '#0f0f0f',
 
     // Semantic
     success: '#4ade80',
-    error: '#ff4444',
-    warning: '#ff9f0a',
+    error:   '#ff4444',
 
-    // UI
-    progressBg: '#222222',
-    progressFill: '#e8ff47',
-    glow: '0 0 30px rgba(232,255,71,0.25)',
-    shadow: '4px 4px 0px #000000',
-    shadowCard: '6px 6px 0px #000000',
+    // Shadows — hard offset GRIPH style
+    shadow:     '3px 3px 0px #ffffff22',
+    shadowCard: '5px 5px 0px #3d3df755',
+    shadowHero: '8px 8px 0px #3d3df7',
 
-    // Quiz states
-    optionCorrectBg: '#4ade8022',
+    // Progress
+    progressBg:   '#2e2e2e',
+    progressFill: '#3d3df7',
+
+    // Quiz option states
+    optionBg:            '#1a1a1a',
+    optionBorder:        '#2e2e2e',
+    optionText:          '#f5f0e8',
+    optionCorrectBg:     '#4ade8022',
     optionCorrectBorder: '#4ade80',
-    optionWrongBg: '#ff444422',
-    optionWrongBorder: '#ff4444',
-
-    // Orbs for animated bg
-    bgOrb1: '#e8ff47',
-    bgOrb2: '#ffffff',
-    bgOrb3: '#888888',
+    optionWrongBg:       '#ff444422',
+    optionWrongBorder:   '#ff4444',
   },
 
   light: {
     id: 'light',
     name: 'فاتح',
-    emoji: '◻',
 
-    bg: '#f5f0e8',
-    bgSurface: '#ede8dc',
-    bgElevated: '#ffffff',
-    bgCard: '#ffffff',
+    bg:         '#f5f0e8',
+    bgCard:     '#ffffff',
+    bgElevated: '#ede8dc',
+    bgAccent:   '#3d3df7',
 
-    border: '#1a1a1a',
-    borderStrong: '#000000',
-    borderAccent: '#000000',
+    border:       '#0f0f0f',
+    borderStrong: '#0f0f0f',
 
-    text: '#0a0a0a',
-    textMuted: '#555555',
-    textSubtle: '#aaaaaa',
+    text:        '#0f0f0f',
+    textMuted:   '#555555',
+    textSubtle:  '#aaaaaa',
     textInverse: '#f5f0e8',
 
-    primary: '#0a0a0a',
-    primaryHover: '#333333',
-    primaryText: '#f5f0e8',
+    primary:     '#3d3df7',
+    primaryText: '#ffffff',
+
+    secondary:     '#ff4ecd',
+    secondaryText: '#ffffff',
+
+    tertiary:     '#0f0f0f',
+    tertiaryText: '#f5f0e8',
 
     success: '#16a34a',
-    error: '#dc2626',
-    warning: '#d97706',
+    error:   '#dc2626',
 
-    progressBg: '#d5cfc3',
-    progressFill: '#0a0a0a',
-    glow: '0 0 30px rgba(0,0,0,0.12)',
-    shadow: '4px 4px 0px #0a0a0a',
-    shadowCard: '6px 6px 0px #0a0a0a',
+    shadow:     '3px 3px 0px #0f0f0f44',
+    shadowCard: '5px 5px 0px #0f0f0f',
+    shadowHero: '8px 8px 0px #0f0f0f',
 
-    optionCorrectBg: '#16a34a18',
+    progressBg:   '#d5cfc3',
+    progressFill: '#3d3df7',
+
+    optionBg:            '#ffffff',
+    optionBorder:        '#0f0f0f',
+    optionText:          '#0f0f0f',
+    optionCorrectBg:     '#4ade8022',
     optionCorrectBorder: '#16a34a',
-    optionWrongBg: '#dc262618',
-    optionWrongBorder: '#dc2626',
-
-    bgOrb1: '#0a0a0a',
-    bgOrb2: '#555555',
-    bgOrb3: '#aaaaaa',
+    optionWrongBg:       '#ff444422',
+    optionWrongBorder:   '#dc2626',
   },
 }
 

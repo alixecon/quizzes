@@ -1,10 +1,11 @@
 export default function SoundToggle({ enabled, onToggle, theme }) {
   return (
     <button onClick={onToggle} style={{
-      padding:'7px 12px', borderRadius:'4px', cursor:'pointer',
-      background:'transparent', border:`2px solid ${theme.border}`,
-      color:theme.textMuted, fontSize:'1rem',
-      boxShadow:`2px 2px 0px ${theme.borderStrong}`,
+      width:'40px', height:'40px', borderRadius:'2px', cursor:'pointer',
+      background:'transparent',
+      border:`2px solid ${theme.border}`,
+      color:theme.textMuted, fontSize:'1.1rem',
+      display:'flex', alignItems:'center', justifyContent:'center',
       transition:'all 0.1s',
     }}>
       {enabled ? '🔊' : '🔇'}

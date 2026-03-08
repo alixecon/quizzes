@@ -4,16 +4,17 @@ export default function ThemeSwitcher({ currentTheme, onThemeChange }) {
     <button
       onClick={() => onThemeChange(isDark ? 'light' : 'dark')}
       style={{
-        display: 'flex', alignItems: 'center', gap: '8px',
-        padding: '8px 16px', borderRadius: '4px',
-        background: isDark ? '#e8ff47' : '#0a0a0a',
-        color:      isDark ? '#0a0a0a' : '#f5f0e8',
-        border:     `2px solid ${isDark ? '#0a0a0a' : '#0a0a0a'}`,
-        boxShadow:  isDark ? '3px 3px 0px #000' : '3px 3px 0px #555',
+        padding:'8px 16px', borderRadius:'2px', cursor:'pointer',
+        background: isDark ? '#f5f0e8' : '#0f0f0f',
+        color:      isDark ? '#0f0f0f' : '#f5f0e8',
+        border:     '2px solid ' + (isDark ? '#f5f0e8' : '#0f0f0f'),
+        boxShadow:  isDark ? '3px 3px 0 #ffffff44' : '3px 3px 0 #00000044',
         fontFamily: 'Tajawal, sans-serif', fontWeight: 800, fontSize: '0.85rem',
-        cursor: 'pointer', transition: 'all 0.15s',
-        letterSpacing: '0.02em',
+        letterSpacing: '0.03em',
+        transition: 'transform 0.1s, box-shadow 0.1s',
       }}
+      onMouseEnter={e=>{e.currentTarget.style.transform='translate(-1px,-1px)'}}
+      onMouseLeave={e=>{e.currentTarget.style.transform='translate(0,0)'}}
     >
       {isDark ? '☀ فاتح' : '◼ داكن'}
     </button>
