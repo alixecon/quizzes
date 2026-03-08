@@ -43,22 +43,8 @@ export default function CategorySelect({ theme:T, onSelect, onBack }) {
   const cardShadow = isDark ? '4px 4px 0 #000000' : '4px 4px 0 #0f0f0f'
   const iconBg     = isDark ? '#2a2a2a' : '#f5f5f5'
 
-  const handleRandom = () => {
-    if (spinning) return
-    setSpinning(true)
-    let count = 0
-    const iv = setInterval(() => {
-      setHighlighted(CATEGORIES[Math.floor(Math.random()*CATEGORIES.length)].id)
-      count++
-      if (count >= 16) {
-        clearInterval(iv)
-        const winner = CATEGORIES[Math.floor(Math.random()*CATEGORIES.length)]
-        setHighlighted(winner.id)
-        setSpinning(false)
-        setTimeout(()=>{ setHighlighted(null); onSelect(winner.id) }, 900)
-      }
-    }, 100)
-  }
+  
+  
 
   return (
     <div style={{ minHeight:'100dvh', background:T.bg, display:'flex', flexDirection:'column', alignItems:'center', padding:'24px 20px', gap:'16px' }}>
