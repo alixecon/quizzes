@@ -11,3 +11,4 @@ import { getQuestions } from '../data/index'
   onBack={() => setScreen('category')}
 />
 
+export default DifficultySelect
