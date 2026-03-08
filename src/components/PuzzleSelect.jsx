@@ -18,9 +18,7 @@ export default function PuzzleSelect({ theme, onSelect, onBack }) {
         <h2 style={{ fontFamily: 'Cairo, sans-serif', fontWeight: 800, fontSize: '1.8rem', color: theme.text }}>
           الألعاب والألغاز
         </h2>
-        <p style={{ color: theme.textMuted, fontSize: '0.9rem', marginTop: '4px' }}>
-          ألعاب ذهنية عربية
-        </p>
+        <p style={{ color: theme.textMuted, fontSize: '0.9rem', marginTop: '4px' }}>ألعاب ذهنية عربية</p>
       </div>
 
       <div style={{ width: '100%', maxWidth: '360px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
@@ -34,12 +32,9 @@ export default function PuzzleSelect({ theme, onSelect, onBack }) {
             className={`animate-fadeInUp delay-${i + 1}`}
             onClick={() => onSelect(p.id)}
             style={{
-              width: '100%', padding: '22px',
-              borderRadius: '20px',
-              display: 'flex', alignItems: 'center', gap: '16px',
-              cursor: 'pointer',
-              '--glass-tint': `${p.color}12`,
-              '--glass-tint-border': `${p.color}30`,
+              width: '100%', padding: '22px', borderRadius: '20px',
+              display: 'flex', alignItems: 'center', gap: '16px', cursor: 'pointer',
+              '--glass-tint': `${p.color}12`, '--glass-tint-border': `${p.color}30`,
             }}
           >
             <div style={{
@@ -51,25 +46,16 @@ export default function PuzzleSelect({ theme, onSelect, onBack }) {
               {p.emoji}
             </div>
             <div style={{ textAlign: 'right' }}>
-              <div style={{ color: theme.text, fontFamily: 'Cairo, sans-serif', fontWeight: 800, fontSize: '1.2rem' }}>
-                {p.name}
-              </div>
-              <div style={{ color: theme.textMuted, fontSize: '0.85rem', marginTop: '2px' }}>
-                {p.desc}
-              </div>
+              <div style={{ color: theme.text, fontFamily: 'Cairo, sans-serif', fontWeight: 800, fontSize: '1.2rem' }}>{p.name}</div>
+              <div style={{ color: theme.textMuted, fontSize: '0.85rem', marginTop: '2px' }}>{p.desc}</div>
             </div>
           </GlassCard>
         ))}
       </div>
 
       <GlassCard
-        as="button"
-        variant="pill"
-        onClick={onBack}
-        style={{
-          padding: '12px 28px', cursor: 'pointer',
-          color: theme.textMuted, fontFamily: 'Cairo, sans-serif', fontSize: '0.9rem',
-        }}
+        as="button" variant="pill" onClick={onBack}
+        style={{ padding: '12px 28px', cursor: 'pointer', color: theme.textMuted, fontFamily: 'Cairo, sans-serif', fontSize: '0.9rem' }}
       >
         ← رجوع
       </GlassCard>

@@ -1,15 +1,14 @@
 import { useState, useEffect, useCallback } from 'react'
+import GlassCard from './GlassCard'
 import { getRandomWord, VALID_GUESSES } from '../data/arabicWords'
 
 const MAX_GUESSES = 6
 const WORD_LENGTH = 5
-
 const ARABIC_KEYBOARD = [
   ['ض','ص','ث','ق','ف','غ','ع','ه','خ','ح','ج'],
   ['ش','س','ي','ب','ل','ا','ت','ن','م','ك','د'],
-  ['ENTER','ئ','ء','ؤ','ر','لا','ى','ة','و','ز','ظ','⌫'],
+  ['ENTER','ئ','ء','ؤ','ر','ى','ة','و','ز','ظ','⌫'],
 ]
-
 const STATE = { EMPTY: 'empty', FILLED: 'filled', CORRECT: 'correct', PRESENT: 'present', ABSENT: 'absent' }
 
 function evaluateGuess(guess, answer) {
@@ -17,12 +16,7 @@ function evaluateGuess(guess, answer) {
   const answerArr = answer.split('')
   const guessArr  = guess.split('')
   const used = Array(WORD_LENGTH).fill(false)
-
-  // First pass: correct positions
-  guessArr.forEach((ch, i) => {
-    if (ch === answerArr[i]) { result[i] = STATE.CORRECT; used[i] = true }
-  })
-  // Second pass: present but wrong position
+  guessArr.forEach((ch, i) => { if (ch === answerArr[i]) { result[i] = STATE.CORRECT; used[i] = true } })
   guessArr.forEach((ch, i) => {
     if (result[i] === STATE.CORRECT) return
     const j = answerArr.findIndex((c, idx) => c === ch && !used[idx])
@@ -33,62 +27,44 @@ function evaluateGuess(guess, answer) {
 
 export default function ArabicWordle({ theme, onBack, sounds }) {
   const [answer,       setAnswer]       = useState(() => getRandomWord())
-  const [guesses,      setGuesses]      = useState([])       // [{word, result}]
+  const [guesses,      setGuesses]      = useState([])
   const [current,      setCurrent]      = useState('')
-  const [gameState,    setGameState]    = useState('playing') // playing|won|lost
+  const [gameState,    setGameState]    = useState('playing')
   const [shake,        setShake]        = useState(false)
   const [message,      setMessage]      = useState('')
   const [revealRow,    setRevealRow]    = useState(null)
   const [letterStates, setLetterStates] = useState({})
 
-  const showMessage = (msg, duration = 2000) => {
-    setMessage(msg)
-    setTimeout(() => setMessage(''), duration)
-  }
+  const showMessage = (msg, duration = 2000) => { setMessage(msg); setTimeout(() => setMessage(''), duration) }
 
   const submitGuess = useCallback(() => {
     if (current.length !== WORD_LENGTH) { setShake(true); setTimeout(() => setShake(false), 500); showMessage('الكلمة يجب أن تكون ٥ أحرف'); return }
-    if (!VALID_GUESSES.includes(current) && !current) { /* allow any for now */ }
-
     const result = evaluateGuess(current, answer)
     const newGuess = { word: current, result }
     const newGuesses = [...guesses, newGuess]
     setRevealRow(newGuesses.length - 1)
     setGuesses(newGuesses)
     setCurrent('')
-
-    // Update letter states
     setLetterStates(prev => {
       const next = { ...prev }
       current.split('').forEach((ch, i) => {
         const s = result[i]
-        if (!next[ch] || s === STATE.CORRECT || (s === STATE.PRESENT && next[ch] === STATE.ABSENT)) {
-          next[ch] = s
-        }
+        if (!next[ch] || s === STATE.CORRECT || (s === STATE.PRESENT && next[ch] === STATE.ABSENT)) next[ch] = s
       })
       return next
     })
-
     if (result.every(r => r === STATE.CORRECT)) {
       setTimeout(() => { setGameState('won'); sounds.complete(); showMessage('🎉 أحسنت! لقد فزت!', 3000) }, 600)
     } else if (newGuesses.length >= MAX_GUESSES) {
       setTimeout(() => { setGameState('lost'); showMessage(`الكلمة كانت: ${answer}`, 4000) }, 600)
-    } else {
-      sounds.click()
-    }
+    } else { sounds.click() }
   }, [current, guesses, answer, sounds])
 
   const handleKey = useCallback((key) => {
     if (gameState !== 'playing') return
-    if (key === '⌫' || key === 'Backspace') {
-      setCurrent(c => c.slice(0, -1)); return
-    }
-    if (key === 'ENTER' || key === 'Enter') {
-      submitGuess(); return
-    }
-    if (current.length < WORD_LENGTH && /[\u0600-\u06FF]/.test(key)) {
-      setCurrent(c => c + key)
-    }
+    if (key === '⌫' || key === 'Backspace') { setCurrent(c => c.slice(0, -1)); return }
+    if (key === 'ENTER' || key === 'Enter') { submitGuess(); return }
+    if (current.length < WORD_LENGTH && /[\u0600-\u06FF]/.test(key)) setCurrent(c => c + key)
   }, [gameState, current, submitGuess])
 
   useEffect(() => {
@@ -97,25 +73,16 @@ export default function ArabicWordle({ theme, onBack, sounds }) {
     return () => window.removeEventListener('keydown', handler)
   }, [handleKey])
 
-  const reset = () => {
-    setAnswer(getRandomWord())
-    setGuesses([])
-    setCurrent('')
-    setGameState('playing')
-    setLetterStates({})
-    setMessage('')
-  }
+  const reset = () => { setAnswer(getRandomWord()); setGuesses([]); setCurrent(''); setGameState('playing'); setLetterStates({}); setMessage('') }
 
   const cellColor = (state) => {
-    switch(state) {
-      case STATE.CORRECT: return { bg: theme.success, border: theme.success, color: '#fff' }
-      case STATE.PRESENT: return { bg: '#ff9f0a', border: '#ff9f0a', color: '#fff' }
-      case STATE.ABSENT:  return { bg: theme.surface, border: theme.textSubtle, color: theme.textMuted }
-      default:            return { bg: 'transparent', border: theme.cardBorder, color: theme.text }
-    }
+    if (state === STATE.CORRECT) return { bg: theme.success, border: theme.success, color: '#fff' }
+    if (state === STATE.PRESENT) return { bg: '#ff9f0a', border: '#ff9f0a', color: '#fff' }
+    if (state === STATE.ABSENT)  return { bg: theme.surface, border: theme.textSubtle, color: theme.textMuted }
+    return { bg: 'transparent', border: theme.cardBorder, color: theme.text }
   }
 
-  const keyColor = (ch) => {
+  const keyBg = (ch) => {
     const s = letterStates[ch]
     if (s === STATE.CORRECT) return theme.success
     if (s === STATE.PRESENT) return '#ff9f0a'
@@ -123,7 +90,6 @@ export default function ArabicWordle({ theme, onBack, sounds }) {
     return theme.surface
   }
 
-  // Build display rows
   const rows = []
   for (let i = 0; i < MAX_GUESSES; i++) {
     if (i < guesses.length) rows.push(guesses[i])
@@ -132,16 +98,7 @@ export default function ArabicWordle({ theme, onBack, sounds }) {
   }
 
   return (
-    <div style={{
-      minHeight: '100dvh',
-      background: theme.bg,
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      padding: '16px 12px 24px',
-      gap: '12px',
-    }}>
-      {/* Header */}
+    <div style={{ minHeight: '100dvh', background: theme.bg, display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '16px 12px 24px', gap: '12px' }}>
       <div style={{ width: '100%', maxWidth: '400px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <button onClick={onBack} style={{ background: 'none', border: 'none', color: theme.textMuted, fontSize: '1.4rem', cursor: 'pointer', padding: '8px' }}>←</button>
         <div>
@@ -151,60 +108,29 @@ export default function ArabicWordle({ theme, onBack, sounds }) {
         <button onClick={reset} style={{ background: 'none', border: 'none', color: theme.textMuted, fontSize: '1.3rem', cursor: 'pointer', padding: '8px' }}>🔄</button>
       </div>
 
-      {/* Message toast */}
       {message && (
-        <div className="animate-scaleIn" style={{
-          background: theme.card,
-          border: `1px solid ${theme.cardBorder}`,
-          borderRadius: '50px',
-          padding: '8px 20px',
-          color: theme.text,
-          fontFamily: 'Cairo, sans-serif',
-          fontWeight: 700,
-          fontSize: '0.9rem',
-          boxShadow: theme.shadow,
-        }}>
+        <GlassCard variant="pill" className="animate-scaleIn" style={{ padding: '8px 20px', color: theme.text, fontFamily: 'Cairo, sans-serif', fontWeight: 700, fontSize: '0.9rem' }}>
           {message}
-        </div>
+        </GlassCard>
       )}
 
-      {/* Grid */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
         {rows.map((row, ri) => (
-          <div
-            key={ri}
-            style={{
-              display: 'flex',
-              flexDirection: 'row-reverse',
-              gap: '6px',
-              animation: ri === guesses.length && shake ? 'shake 0.45s ease' : 'none',
-            }}
-          >
+          <div key={ri} style={{ display: 'flex', flexDirection: 'row-reverse', gap: '6px', animation: ri === guesses.length && shake ? 'shake 0.45s ease' : 'none' }}>
             {Array.from({ length: WORD_LENGTH }).map((_, ci) => {
               const ch = row.word[ci] === ' ' ? '' : row.word[ci]
               const state = row.result ? row.result[ci] : (ch ? STATE.FILLED : STATE.EMPTY)
               const colors = cellColor(state)
               const delay = row.result && ri === revealRow ? `${ci * 0.1}s` : '0s'
               return (
-                <div
-                  key={ci}
-                  style={{
-                    width: 'clamp(44px, 12vw, 56px)',
-                    height: 'clamp(44px, 12vw, 56px)',
-                    borderRadius: '10px',
-                    border: `2px solid ${colors.border}`,
-                    background: colors.bg,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontFamily: 'Cairo, sans-serif',
-                    fontWeight: 800,
-                    fontSize: 'clamp(1rem, 4vw, 1.4rem)',
-                    color: colors.color,
-                    transition: `background 0.3s ${delay}, border-color 0.3s ${delay}`,
-                    transform: ch && !row.result ? 'scale(1.05)' : 'scale(1)',
-                  }}
-                >
+                <div key={ci} style={{
+                  width: 'clamp(44px, 12vw, 56px)', height: 'clamp(44px, 12vw, 56px)',
+                  borderRadius: '10px', border: `2px solid ${colors.border}`, background: colors.bg,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontFamily: 'Cairo, sans-serif', fontWeight: 800,
+                  fontSize: 'clamp(1rem, 4vw, 1.4rem)', color: colors.color,
+                  transition: `background 0.3s ${delay}, border-color 0.3s ${delay}`,
+                }}>
                   {ch}
                 </div>
               )
@@ -213,61 +139,42 @@ export default function ArabicWordle({ theme, onBack, sounds }) {
         ))}
       </div>
 
-      {/* Virtual keyboard */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', width: '100%', maxWidth: '400px', marginTop: '8px' }}>
         {ARABIC_KEYBOARD.map((row, ri) => (
           <div key={ri} style={{ display: 'flex', justifyContent: 'center', gap: '4px' }}>
             {row.map((key) => (
-              <button
-                key={key}
-                onClick={() => handleKey(key)}
-                style={{
-                  flex: key === 'ENTER' ? 1.6 : key === '⌫' ? 1.6 : 1,
-                  minWidth: key === 'ENTER' || key === '⌫' ? '44px' : '28px',
-                  height: '44px',
-                  borderRadius: '8px',
-                  border: `1px solid ${theme.cardBorder}`,
-                  background: letterStates[key] ? keyColor(key) : theme.card,
-                  color: letterStates[key] === STATE.CORRECT || letterStates[key] === STATE.PRESENT
-                    ? '#fff'
-                    : theme.text,
-                  fontFamily: 'Cairo, sans-serif',
-                  fontWeight: 700,
-                  fontSize: key === 'ENTER' ? '0.65rem' : '0.95rem',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  backdropFilter: theme.blur,
-                }}
-              >
+              <GlassCard key={key} as="button" variant="btn" onClick={() => handleKey(key)} style={{
+                flex: key === 'ENTER' || key === '⌫' ? 1.6 : 1,
+                minWidth: '28px', height: '44px', borderRadius: '8px',
+                background: letterStates[key] ? keyBg(key) : theme.card,
+                color: letterStates[key] === STATE.CORRECT || letterStates[key] === STATE.PRESENT ? '#fff' : theme.text,
+                fontFamily: 'Cairo, sans-serif', fontWeight: 700,
+                fontSize: key === 'ENTER' ? '0.65rem' : '0.95rem', cursor: 'pointer',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}>
                 {key === 'ENTER' ? 'دخول' : key}
-              </button>
+              </GlassCard>
             ))}
           </div>
         ))}
       </div>
 
-      {/* Won/Lost actions */}
       {gameState !== 'playing' && (
         <div className="animate-fadeInUp" style={{ display: 'flex', gap: '10px', marginTop: '4px' }}>
-          <button onClick={reset} style={{
+          <GlassCard as="button" variant="btn" shimmer onClick={reset} style={{
             padding: '12px 24px', borderRadius: '50px',
-            background: `linear-gradient(135deg, ${theme.primary}, ${theme.secondary})`,
+            background: `linear-gradient(135deg, ${theme.primary}cc, ${theme.secondary}aa)`,
             color: '#fff', fontFamily: 'Cairo, sans-serif', fontWeight: 700,
-            border: 'none', cursor: 'pointer', fontSize: '0.95rem',
+            border: '1px solid rgba(255,255,255,0.25)', cursor: 'pointer', fontSize: '0.95rem',
           }}>
             🔄 لعبة جديدة
-          </button>
-          <button onClick={onBack} style={{
-            padding: '12px 24px', borderRadius: '50px',
-            background: theme.surface, border: `1px solid ${theme.cardBorder}`,
-            color: theme.text, fontFamily: 'Cairo, sans-serif', fontWeight: 700,
-            cursor: 'pointer', fontSize: '0.95rem',
+          </GlassCard>
+          <GlassCard as="button" variant="pill" onClick={onBack} style={{
+            padding: '12px 24px', color: theme.text,
+            fontFamily: 'Cairo, sans-serif', fontWeight: 700, cursor: 'pointer', fontSize: '0.95rem',
           }}>
             ← رجوع
-          </button>
+          </GlassCard>
         </div>
       )}
     </div>
