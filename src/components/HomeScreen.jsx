@@ -1,14 +1,22 @@
 import { useState } from 'react'
-import GlassCard from './GlassCard'
 import ThemeSwitcher from './ThemeSwitcher'
 import SoundToggle from './SoundToggle'
 
-export default function HomeScreen({
-  profile, theme, themeId, onThemeChange,
-  soundEnabled, onSoundToggle,
-  onStart, onEditProfile, onStats,onLeaderboard
-}) {
+export default function HomeScreen({ profile, theme, themeId, onThemeChange, soundEnabled, onSoundToggle, onStart, onEditProfile }) {
   const [pressed, setPressed] = useState(false)
+
+  const handleStart = () => {
+    setPressed(true)
+    onStart()
+  }
+
+  const cardStyle = {
+    background: theme.card,
+    border: `1px solid ${theme.cardBorder}`,
+    borderRadius: '20px',
+    backdropFilter: 'blur(20px)',
+    WebkitBackdropFilter: 'blur(20px)',
+  }
 
   return (
     <div style={{
@@ -22,29 +30,32 @@ export default function HomeScreen({
       gap: '20px',
       position: 'relative',
     }}>
-
       {/* Top bar */}
       <div style={{
         position: 'absolute',
-        top: '20px', left: '20px', right: '20px',
+        top: '20px',
+        left: '20px',
+        right: '20px',
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
       }}>
         <SoundToggle enabled={soundEnabled} onToggle={onSoundToggle} theme={theme} />
-        <GlassCard variant="pill" style={{
-          padding: '5px 14px',
+        <div style={{
+          fontSize: '0.75rem',
           color: theme.textSubtle,
-          fontSize: '0.72rem',
           fontFamily: 'Cairo, sans-serif',
           letterSpacing: '0.5px',
         }}>
           مسابقة المعرفة
-        </GlassCard>
+        </div>
       </div>
 
       {/* Hero */}
-      <div className="animate-fadeInUp" style={{ textAlign: 'center', marginTop: '40px' }}>
+      <div
+        className="animate-fadeInUp"
+        style={{ textAlign: 'center', marginTop: '40px' }}
+      >
         <div style={{
           fontSize: 'clamp(4rem, 15vw, 7rem)',
           lineHeight: 1,
@@ -79,146 +90,84 @@ export default function HomeScreen({
 
       {/* Profile card */}
       {profile && (
-        <GlassCard
-          variant="card"
-          shimmer
+        <div
           className="animate-fadeInUp delay-1"
           onClick={onEditProfile}
           style={{
+            ...cardStyle,
             padding: '16px 20px',
             display: 'flex',
             alignItems: 'center',
             gap: '14px',
             cursor: 'pointer',
+            transition: 'all 0.2s ease',
             width: '100%',
             maxWidth: '360px',
-            '--glass-tint': `${theme.primary}12`,
-            '--glass-tint-border': `${theme.primary}28`,
           }}
+          onMouseEnter={e => e.currentTarget.style.borderColor = theme.primary}
+          onMouseLeave={e => e.currentTarget.style.borderColor = theme.cardBorder}
         >
-          <span style={{ fontSize: '2.2rem' }}>{profile.avatar || '🎯'}</span>
+          <span style={{ fontSize: '2.2rem' }}>{profile.avatar}</span>
           <div style={{ flex: 1, textAlign: 'right' }}>
-            <div style={{
-              color: theme.text,
-              fontFamily: 'Cairo, sans-serif',
-              fontWeight: 700, fontSize: '1rem',
-            }}>
+            <div style={{ color: theme.text, fontFamily: 'Cairo, sans-serif', fontWeight: 700, fontSize: '1rem' }}>
               {profile.name}
             </div>
             <div style={{ color: theme.textMuted, fontSize: '0.8rem' }}>
-              أفضل نتيجة: {profile.bestScore || 0} نقطة · ✏️ تعديل
+              أفضل نتيجة: {profile.bestScore || 0} نقطة ✏️ تعديل
             </div>
           </div>
-        </GlassCard>
+        </div>
       )}
 
       {/* Start button */}
-      <GlassCard
-        as="button"
-        variant="btn"
-        shimmer
-        liquid
+      <button
         className="animate-fadeInUp delay-2"
-        onClick={() => { console.log('BUTTON CLICKED'); setPressed(true); onStart() }}
-        onMouseDown={() => setPressed(true)}
-        onMouseUp={() => setPressed(false)}
-        onMouseLeave={() => setPressed(false)}
-        onTouchStart={() => setPressed(true)}
-        onTouchEnd={() => setPressed(false)}
+        onClick={handleStart}
         style={{
           width: '100%',
           maxWidth: '360px',
           padding: '18px',
           borderRadius: '16px',
-          background: `linear-gradient(135deg, ${theme.primary}cc, ${theme.secondary}aa)`,
+          background: `linear-gradient(135deg, ${theme.primary}, ${theme.secondary})`,
           color: '#fff',
           fontSize: 'clamp(1.1rem, 4vw, 1.3rem)',
           fontFamily: 'Cairo, sans-serif',
           fontWeight: 800,
-          border: '1px solid rgba(255,255,255,0.28)',
-          boxShadow: `0 8px 30px ${theme.primary}55, inset 0 1px 0 rgba(255,255,255,0.3)`,
+          border: 'none',
+          boxShadow: `0 8px 30px ${theme.primary}55`,
           cursor: 'pointer',
           transform: pressed ? 'scale(0.97)' : 'scale(1)',
-          transition: 'all 0.15s ease',
+          transition: 'transform 0.15s ease, box-shadow 0.15s ease',
           letterSpacing: '0.5px',
         }}
+        onMouseEnter={e => { e.currentTarget.style.boxShadow = `0 12px 40px ${theme.primary}77` }}
+        onMouseLeave={e => { e.currentTarget.style.boxShadow = `0 8px 30px ${theme.primary}55`; setPressed(false) }}
+        onMouseDown={() => setPressed(true)}
+        onMouseUp={() => setPressed(false)}
+        onTouchStart={() => setPressed(true)}
+        onTouchEnd={() => { setPressed(false); handleStart() }}
       >
         🚀 ابدأ المسابقة
-      </GlassCard>
-
-      {/* Stats button */}
-      <GlassCard
-        as="button"
-        variant="card"
-        className="animate-fadeInUp delay-3"
-        onClick={onStats}
-        style={{
-          width: '100%',
-          maxWidth: '360px',
-          padding: '15px',
-          borderRadius: '16px',
-          color: theme.textMuted,
-          fontSize: '1rem',
-          fontFamily: 'Cairo, sans-serif',
-          fontWeight: 700,
-          cursor: 'pointer',
-          textAlign: 'center',
-          border: `1px solid rgba(255,255,255,0.1)`,
-        }}
-      >
-        📊 إحصائياتي
-      </GlassCard>
-      
-      {/* Leaderboard button */}
-          <GlassCard
-          as="button"
-         variant="card"
-         className="animate-fadeInUp delay-4"
-         onClick={onLeaderboard}
-         style={{
-          width: '100%', maxWidth: '360px',
-          padding: '15px', borderRadius: '16px',
-          color: '#ffd60a', fontSize: '1rem',
-        fontFamily: 'Cairo, sans-serif', fontWeight: 700,
-          cursor: 'pointer', textAlign: 'center',
-        '--glass-tint': 'rgba(255,214,10,0.08)',
-      '--glass-tint-border': 'rgba(255,214,10,0.2)',
-  }}
->
-  🏆 المتصدرون
-</GlassCard>
-
+      </button>
 
       {/* Theme switcher */}
-      <GlassCard
-        variant="card"
-        className="animate-fadeInUp delay-4"
-        style={{
-          width: '100%',
-          maxWidth: '360px',
-          padding: '16px 18px',
-        }}
-      >
-        <div style={{
-          color: theme.textMuted, fontSize: '0.78rem',
-          textAlign: 'center', marginBottom: '12px',
-          fontFamily: 'Cairo, sans-serif',
-        }}>
+      <div className="animate-fadeInUp delay-3" style={{ width: '100%', maxWidth: '360px' }}>
+        <div style={{ color: theme.textMuted, fontSize: '0.78rem', textAlign: 'center', marginBottom: '10px', fontFamily: 'Cairo, sans-serif' }}>
           اختر المظهر
         </div>
         <ThemeSwitcher currentTheme={themeId} onThemeChange={onThemeChange} />
-      </GlassCard>
+      </div>
 
       {/* Footer */}
-      <div className="animate-fadeInUp delay-5" style={{
+      <div className="animate-fadeInUp delay-4" style={{
         color: theme.textSubtle,
         fontSize: '0.72rem',
         textAlign: 'center',
         fontFamily: 'Cairo, sans-serif',
+        marginTop: '8px',
       }}>
-        ٨ فئات · ٣ مستويات · ألعاب وألغاز
+        ٨ فئات · ٣ مستويات · نقاط فورية
       </div>
-
     </div>
   )
 }
