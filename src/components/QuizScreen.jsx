@@ -1,156 +1,336 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
+import GlassCard from './GlassCard'
 
-const TIMER_SECS = 20
+const TIMER_SECONDS = 20
+const POINTS_BASE   = 10
 
-export default function QuizScreen({ questions, difficulty, mode, theme:T, sounds, onFinish }) {
-  const [idx,      setIdx]      = useState(0)
-  const [selected, setSelected] = useState(null)
-  const [answered, setAnswered] = useState(false)
-  const [score,    setScore]    = useState(0)
-  const [timeLeft, setTimeLeft] = useState(TIMER_SECS)
-  const timerRef = useRef(null)
-  const mult = {easy:1,medium:2,hard:3}[difficulty]||1
-  const q    = questions[idx]
-  const pct  = (idx / questions.length) * 100
-  const tPct = (timeLeft / TIMER_SECS) * 100
+export default function QuizScreen({ questions, difficulty, mode, theme, sounds, onFinish }) {
+  const [currentIndex, setCurrentIndex] = useState(0)
+  const [selected,     setSelected]     = useState(null)
+  const [answered,     setAnswered]     = useState(false)
+  const [score,        setScore]        = useState(0)
+  const [timeLeft,     setTimeLeft]     = useState(TIMER_SECONDS)
+  const [streak,  setStreak]  = useState(0)  // resets on wrong answer
+  const [pointsEarned, setPointsEarned] = useState(0)
+  const [showPoints,   setShowPoints]   = useState(false)
+  const [correct, setCorrect] = useState(0)  // NEVER resets, only increments
+  const timerRef   = useRef(null)
+  const answeredRef = useRef(false)
 
-  const answer = useCallback((i) => {
-    if (answered) return
-    clearInterval(timerRef.current)
-    setSelected(i); setAnswered(true)
-    if (i === q.answer) { setScore(s=>s+10*mult); sounds.correct() }
-    else sounds.wrong()
-  }, [answered, q, mult, sounds])
+  const multMap = { easy: 1, medium: 2, hard: 3 }
+  const mult    = multMap[difficulty] || 1
 
+  const current  = questions[currentIndex]
+  const total    = questions.length
+  const progress = (currentIndex / total) * 100
+
+  // streak bonus: 0→0, 1→0, 2→+5, 3→+10, 4+→+15
+  const streakBonus = streak >= 4 ? 15 : streak >= 3 ? 10 : streak >= 2 ? 5 : 0
+
+  const handleAnswer = useCallback((optIdx) => {
+  if (answeredRef.current) return
+  answeredRef.current = true
+  clearInterval(timerRef.current)
+  setSelected(optIdx)
+  setAnswered(true)
+
+  // ✅ compute locally inside callback
+  const bonus = streak >= 4 ? 15 : streak >= 3 ? 10 : streak >= 2 ? 5 : 0
+
+  const isCorrect = optIdx === current.answer
+  if (isCorrect) {
+  setCorrect(c => c + 1)   // ✅ always increments, never resets
+  setStreak(s => s + 1)    // resets on wrong
+  // ...points logic
+} else {
+  setStreak(0)             // ✅ only streak resets, correct is untouched
+  sounds?.wrong?.()
+}
+
+}, [current, mult, mode, timeLeft, streak])  // ✅ clean deps
+
+
+  // Reset answeredRef on question change
   useEffect(() => {
-    if (answered) return
-    setTimeLeft(TIMER_SECS)
-    timerRef.current = setInterval(()=>{
-      setTimeLeft(t=>{ if(t<=1){clearInterval(timerRef.current);answer(-1);return 0} return t-1 })
-    },1000)
-    return ()=>clearInterval(timerRef.current)
-  },[idx])
+    answeredRef.current = false
+    setTimeLeft(TIMER_SECONDS)
 
-  const next = () => {
-    if (idx+1>=questions.length){onFinish(score);sounds.complete()}
-    else{setIdx(i=>i+1);setSelected(null);setAnswered(false)}
-  }
+    if (mode !== 'timed') return
+    timerRef.current = setInterval(() => {
+      setTimeLeft(t => {
+        if (t <= 1) {
+          clearInterval(timerRef.current)
+          handleAnswer(-1)
+          return 0
+        }
+        return t - 1
+      })
+    }, 1000)
+    return () => clearInterval(timerRef.current)
+  }, [currentIndex, mode])
 
-  const optStyle = (i) => {
-    const base = {
-      width:'100%', padding:'18px 20px', borderRadius:'2px', cursor:answered?'default':'pointer',
-      border:`2px solid ${T.optionBorder}`, background:T.optionBg,
-      color:T.optionText, fontFamily:'Tajawal,sans-serif', fontWeight:700,
-      fontSize:'clamp(0.95rem,3.5vw,1.05rem)', textAlign:'right',
-      display:'flex', alignItems:'center', gap:'14px', transition:'all 0.15s',
-      boxShadow:`3px 3px 0 ${T.border}`,
+  const handleNext = () => {
+    if (currentIndex + 1 >= total) {
+      sounds?.complete?.()
+      onFinish({ score, streak, correct })
+    } else {
+      setCurrentIndex(i => i + 1)
+      setSelected(null)
+      setAnswered(false)
     }
-    if (!answered) return base
-    if (i===q.answer) return {...base, background:T.optionCorrectBg, border:`2px solid ${T.optionCorrectBorder}`, boxShadow:`3px 3px 0 ${T.optionCorrectBorder}`, animation:'correctPop 0.4s ease'}
-    if (i===selected) return {...base, background:T.optionWrongBg, border:`2px solid ${T.optionWrongBorder}`, boxShadow:`3px 3px 0 ${T.optionWrongBorder}`, animation:'shake 0.4s ease', opacity:0.8}
-    return {...base, opacity:0.4}
   }
 
-  const timerColor = tPct>50 ? T.primary : tPct>25 ? '#ff9f0a' : T.error
+  const timerPct   = (timeLeft / TIMER_SECONDS) * 100
+  const timerColor = timerPct > 50 ? theme.primary : timerPct > 25 ? '#ff9f0a' : '#ff453a'
+
+  const optionStyle = (idx) => {
+    if (!answered) return {}
+    if (idx === current.answer) return {
+      '--glass-tint': 'rgba(52,199,89,0.18)',
+      '--glass-tint-border': '#34c759',
+    }
+    if (idx === selected && idx !== current.answer) return {
+      '--glass-tint': 'rgba(255,69,58,0.18)',
+      '--glass-tint-border': '#ff453a',
+    }
+    return { opacity: 0.4 }
+  }
+
+  const streakLabel = streak >= 4 ? '🔥🔥🔥' : streak >= 3 ? '🔥🔥' : streak >= 2 ? '🔥' : null
 
   return (
-    <div style={{ minHeight:'100dvh', background:T.bg, display:'flex', flexDirection:'column', padding:'20px 20px 32px' }}>
+    <div style={{
+      minHeight: '100dvh', background: theme.bg,
+      display: 'flex', flexDirection: 'column',
+      padding: '20px 20px 32px', gap: '14px',
+      position: 'relative',
+    }}>
+
+      {/* Floating +points animation */}
+      {showPoints && (
+        <div style={{
+          position: 'fixed', top: '80px', left: '50%',
+          transform: 'translateX(-50%)',
+          color: '#34c759', fontFamily: 'Cairo, sans-serif',
+          fontWeight: 800, fontSize: '1.4rem',
+          animation: 'floatUp 1.5s ease forwards',
+          zIndex: 999, pointerEvents: 'none',
+          textShadow: '0 0 20px rgba(52,199,89,0.6)',
+        }}>
+          +{pointsEarned}
+        </div>
+      )}
 
       {/* Header */}
-      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'14px' }}>
-        <div style={{
-          padding:'6px 14px', borderRadius:'2px',
-          background:T.bgCard, border:`2px solid ${T.border}`,
-          color:T.text, fontFamily:'IBM Plex Mono,monospace', fontWeight:700, fontSize:'0.82rem',
-          boxShadow:`2px 2px 0 ${T.border}`,
-        }}>
-          {idx+1} / {questions.length}
+      <div className="animate-fadeIn" style={{
+        display: 'flex', justifyContent: 'space-between',
+        alignItems: 'center', marginTop: '8px',
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <GlassCard variant="pill" style={{
+            padding: '6px 16px',
+            color: theme.primary,
+            fontFamily: 'Cairo, sans-serif', fontWeight: 700, fontSize: '0.9rem',
+            '--glass-tint': `${theme.primary}18`,
+            '--glass-tint-border': `${theme.primary}40`,
+          }}>
+            {score} نقطة
+          </GlassCard>
+          {/* Streak badge */}
+          {streakLabel && (
+            <div style={{
+              fontFamily: 'Cairo, sans-serif', fontWeight: 800,
+              fontSize: '0.85rem', color: '#ff9f0a',
+              animation: 'timerPulse 0.8s ease infinite',
+            }}>
+              {streakLabel} ×{streak}
+            </div>
+          )}
         </div>
         <div style={{
-          padding:'6px 16px', borderRadius:'2px',
-          background:T.primary, border:`2px solid ${T.primary}`,
-          color:T.primaryText, fontFamily:'Tajawal,sans-serif', fontWeight:800, fontSize:'0.9rem',
-          boxShadow:`2px 2px 0 ${T.border}`,
+          color: theme.textMuted,
+          fontFamily: 'Cairo, sans-serif', fontSize: '0.85rem',
         }}>
-          {score} نقطة
+          {total} / {currentIndex + 1}
         </div>
       </div>
 
-      {/* Progress */}
-      <div style={{ height:'6px', background:T.progressBg, borderRadius:'1px', marginBottom:'10px', border:`1px solid ${T.border}` }}>
-        <div style={{ height:'100%', width:`${pct}%`, background:T.progressFill, transition:'width 0.5s ease' }} />
+      {/* Progress bar */}
+      <div style={{
+        height: '6px', borderRadius: '3px',
+        background: theme.progressBg, overflow: 'hidden',
+      }}>
+        <div style={{
+          height: '100%', width: `${progress}%`,
+          background: theme.progressFill,
+          borderRadius: '3px', transition: 'width 0.5s ease',
+        }} />
       </div>
 
       {/* Timer */}
-      <div style={{ display:'flex', alignItems:'center', gap:'12px', marginBottom:'20px' }}>
-        <div style={{ flex:1, height:'8px', background:T.progressBg, border:`1px solid ${T.border}`, borderRadius:'1px', overflow:'hidden' }}>
-          <div style={{ height:'100%', width:`${tPct}%`, background:timerColor, transition:'width 1s linear, background 0.3s' }} />
+      {mode === 'timed' && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div style={{
+            color: timerColor, fontFamily: 'Cairo, sans-serif',
+            fontWeight: 800, fontSize: '1.1rem',
+            minWidth: '28px', textAlign: 'center',
+            animation: timeLeft <= 5 ? 'timerPulse 0.6s ease infinite' : 'none',
+          }}>
+            {timeLeft}
+          </div>
+          <div style={{
+            flex: 1, height: '8px', borderRadius: '4px',
+            background: theme.progressBg, overflow: 'hidden',
+          }}>
+            <div style={{
+              height: '100%', width: `${timerPct}%`,
+              background: timerColor, borderRadius: '4px',
+              transition: 'width 1s linear, background 0.3s',
+            }} />
+          </div>
         </div>
-        <span style={{ color:timerColor, fontFamily:'IBM Plex Mono,monospace', fontWeight:700, fontSize:'1rem', minWidth:'28px', textAlign:'center' }}>
-          {timeLeft}
-        </span>
-      </div>
+      )}
 
-      {/* Question */}
-      <div key={idx} className="animate-scaleIn" style={{
-        padding:'24px 20px', marginBottom:'20px',
-        background:T.bgCard, border:`2px solid ${T.border}`,
-        borderRadius:'2px', boxShadow:T.shadowCard,
-      }}>
-        <div style={{ color:T.textMuted, fontFamily:'IBM Plex Mono,monospace', fontSize:'0.72rem', marginBottom:'10px', letterSpacing:'0.06em' }}>
-          سؤال — {idx+1}
+      {/* Question card */}
+      <GlassCard
+        key={currentIndex}
+        variant="card"
+        className="animate-scaleIn"
+        style={{
+          padding: '24px 20px',
+          '--glass-tint': `${theme.primary}08`,
+          '--glass-tint-border': `${theme.primary}20`,
+        }}
+      >
+        <div style={{
+          color: theme.textSubtle, fontSize: '0.78rem',
+          fontFamily: 'Cairo, sans-serif', marginBottom: '12px',
+        }}>
+          سؤال {currentIndex + 1}
         </div>
-        <p style={{ color:T.text, fontFamily:'Tajawal,sans-serif', fontSize:'clamp(1.1rem,4vw,1.3rem)', fontWeight:700, lineHeight:1.6 }}>
-          {q.question}
+        <p style={{
+          color: theme.text,
+          fontFamily: 'Noto Naskh Arabic, serif',
+          fontSize: 'clamp(1.05rem, 4vw, 1.25rem)',
+          lineHeight: 1.7, fontWeight: 600, margin: 0,
+        }}>
+          {current.question}
         </p>
-      </div>
+      </GlassCard>
 
       {/* Options */}
-      <div style={{ display:'flex', flexDirection:'column', gap:'10px', flex:1 }}>
-        {q.options.map((opt,i)=>(
-          <button key={i} style={optStyle(i)} onClick={()=>answer(i)}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', flex: 1 }}>
+        {current.options.map((opt, idx) => (
+          <GlassCard
+            key={idx}
+            as="button"
+            variant="card"
+            onClick={() => handleAnswer(idx)}
+            style={{
+              width: '100%', padding: '16px 18px',
+              borderRadius: '14px',
+              color: theme.text,
+              fontFamily: 'Noto Naskh Arabic, serif',
+              fontSize: 'clamp(0.9rem, 3.5vw, 1rem)',
+              textAlign: 'right',
+              cursor: answered ? 'default' : 'pointer',
+              display: 'flex', alignItems: 'center', gap: '12px',
+              lineHeight: 1.5,
+              transition: 'all 0.25s',
+              ...optionStyle(idx),
+            }}
+          >
             <span style={{
-              width:'32px', height:'32px', borderRadius:'2px', flexShrink:0,
-              border:`2px solid ${answered && i===q.answer ? T.optionCorrectBorder : answered && i===selected ? T.optionWrongBorder : T.border}`,
-              background: answered && i===q.answer ? T.optionCorrectBg : answered && i===selected ? T.optionWrongBg : T.bgElevated,
-              display:'flex', alignItems:'center', justifyContent:'center',
-              fontFamily:'IBM Plex Mono,monospace', fontWeight:700, fontSize:'0.85rem',
-              color: answered && i===q.answer ? T.optionCorrectBorder : answered && i===selected ? T.optionWrongBorder : T.textMuted,
+              width: '28px', height: '28px', borderRadius: '8px',
+              background: answered && idx === current.answer ? 'rgba(52,199,89,0.2)'
+                : answered && idx === selected && idx !== current.answer ? 'rgba(255,69,58,0.2)'
+                : 'rgba(255,255,255,0.06)',
+              border: `1px solid ${
+                answered && idx === current.answer ? '#34c759'
+                : answered && idx === selected && idx !== current.answer ? '#ff453a'
+                : 'rgba(255,255,255,0.12)'
+              }`,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontFamily: 'Cairo, sans-serif', fontWeight: 700, fontSize: '0.8rem',
+              color: answered && idx === current.answer ? '#34c759'
+                : answered && idx === selected && idx !== current.answer ? '#ff453a'
+                : theme.textMuted,
+              flexShrink: 0, transition: 'all 0.25s',
             }}>
-              {answered && i===q.answer ? '✓' : answered && i===selected ? '✗' : ['A','B','C','D'][i]}
+              {answered && idx === current.answer ? '✓'
+               : answered && idx === selected && idx !== current.answer ? '✗'
+               : ['أ','ب','ج','د'][idx]}
             </span>
             {opt}
-          </button>
+          </GlassCard>
         ))}
       </div>
 
-      {/* Feedback + Next */}
+      {/* Explanation */}
       {answered && (
-        <div className="animate-fadeInUp" style={{ marginTop:'16px' }}>
+        <div className="animate-fadeInUp">
+          {/* Result line */}
           <div style={{
-            textAlign:'center', marginBottom:'12px',
-            fontFamily:'Tajawal,sans-serif', fontWeight:800, fontSize:'1rem',
-            color: selected===q.answer ? T.optionCorrectBorder : T.optionWrongBorder,
+            textAlign: 'center', marginBottom: '10px',
+            fontFamily: 'Cairo, sans-serif', fontWeight: 700, fontSize: '1rem',
+            color: selected === current.answer ? '#34c759' : '#ff453a',
           }}>
-            {selected===q.answer ? `✓ أحسنت! +${10*mult} نقطة` : selected===-1 ? '⏰ انتهى الوقت!' : `✗ الإجابة: ${q.options[q.answer]}`}
+            {selected === current.answer
+              ? `🎉 أحسنت! +${pointsEarned} نقطة${streakBonus > 0 ? ` (شامل مكافأة السلسلة +${streakBonus})` : ''}`
+              : selected === -1 ? '⏰ انتهى الوقت!'
+              : `❌ الإجابة الصحيحة: ${current.options[current.answer]}`}
           </div>
-          <button
-            onClick={next}
+
+          {/* Explanation card */}
+          <GlassCard variant="card" style={{
+            padding: '14px 16px', marginBottom: '12px',
+            '--glass-tint': 'rgba(255,255,255,0.04)',
+            '--glass-tint-border': 'rgba(255,255,255,0.12)',
+          }}>
+            <div style={{
+              color: theme.textMuted, fontSize: '0.72rem',
+              fontFamily: 'Cairo, sans-serif', marginBottom: '6px',
+            }}>
+              💡 هل تعلم؟
+            </div>
+            <p style={{
+              color: theme.text, margin: 0,
+              fontFamily: 'Noto Naskh Arabic, serif',
+              fontSize: '0.88rem', lineHeight: 1.7,
+            }}>
+              {current.explanation}
+            </p>
+          </GlassCard>
+
+          {/* Next button */}
+          <GlassCard
+            as="button"
+            variant="btn"
+            shimmer
+            liquid
+            onClick={handleNext}
             style={{
-              width:'100%', padding:'17px',
-              fontFamily:'Tajawal,sans-serif', fontWeight:900, fontSize:'1.1rem',
-              background:T.primary, color:T.primaryText,
-              border:`2px solid ${T.primary}`, borderRadius:'2px',
-              boxShadow:T.shadowCard, cursor:'pointer',
-              transition:'transform 0.1s, box-shadow 0.1s',
+              width: '100%', padding: '16px', borderRadius: '14px',
+              background: `linear-gradient(135deg, ${theme.primary}cc, ${theme.secondary}aa)`,
+              color: '#fff', fontSize: '1.05rem',
+              fontFamily: 'Cairo, sans-serif', fontWeight: 800,
+              border: '1px solid rgba(255,255,255,0.25)',
+              cursor: 'pointer',
+              boxShadow: `0 6px 24px ${theme.primary}44, inset 0 1px 0 rgba(255,255,255,0.25)`,
             }}
-            onMouseEnter={e=>{e.currentTarget.style.transform='translate(-2px,-2px)';e.currentTarget.style.boxShadow=`7px 7px 0 ${T.secondary}`}}
-            onMouseLeave={e=>{e.currentTarget.style.transform='translate(0,0)';e.currentTarget.style.boxShadow=T.shadowCard}}
           >
-            {idx+1>=questions.length ? '🏁 عرض النتائج ↗' : 'التالي ↗'}
-          </button>
+            {currentIndex + 1 >= total ? '🏁 عرض النتائج' : 'التالي ←'}
+          </GlassCard>
         </div>
       )}
+
+      {/* floatUp keyframe — inject once */}
+      <style>{`
+        @keyframes floatUp {
+          0%   { opacity: 1; transform: translateX(-50%) translateY(0); }
+          100% { opacity: 0; transform: translateX(-50%) translateY(-60px); }
+        }
+      `}</style>
     </div>
   )
 }
