@@ -18,7 +18,7 @@ export default function CategorySelect({ theme:T, sounds, onSelect, onBack }) {
   const handleRandom = () => {
     if (spinning) return
     setSpinning(true)
-    if (sounds && sounds.randomSpin) sounds.randomSpin()   // play suspense once
+if (sounds && sounds.randomSpin) sounds.randomSpin() //lock-in sound for random spin
 
     let count = 0
     const iv = setInterval(() => {
