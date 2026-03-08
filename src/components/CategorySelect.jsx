@@ -11,14 +11,14 @@ const CATEGORIES = [
   { id:'general',    name:'معلومات عامة', emoji:'🧠', color:'#ff6cae' },
 ]
 
-export default function CategorySelect({ theme:T, onSelect, onBack }) {
+export default function CategorySelect({ theme:T, sounds,onSelect, onBack }) {
   const [spinning,    setSpinning]   = useState(false)
   const [highlighted, setHighlighted]= useState(null)
 
   const handleRandom = () => {
     if (spinning) return
     setSpinning(true)
-    sounds?.randomSpin && sounds.randomSpin()   // suspense sound once
+    sounds?.randomSpin?.()   // suspense sound once 
 
     let count = 0
     const iv = setInterval(() => {
@@ -30,7 +30,7 @@ export default function CategorySelect({ theme:T, onSelect, onBack }) {
         setHighlighted(winner.id)
         setSpinning(false)
         setTimeout(()=>{ setHighlighted(null); onSelect(winner.id) }, 900)
-        sounds?.start && sounds.start()         // celebratory sound at lock-in
+        sounds?.start?.()        // celebratory sound at lock-in
       }
     }, 100)
   }

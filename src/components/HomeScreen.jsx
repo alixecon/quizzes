@@ -1,6 +1,11 @@
 import ThemeSwitcher from './ThemeSwitcher'
 import SoundToggle from './SoundToggle'
 
+const highScore  = parseInt(localStorage.getItem('highScore')  || '0');
+const bestStreak = parseInt(localStorage.getItem('bestStreak') || '0');
+const totalGames = parseInt(localStorage.getItem('totalGames') || '0');
+
+
 export default function HomeScreen({ profile, theme:T, themeId, onThemeChange, soundEnabled, onSoundToggle, onStart, onEditProfile }) {
   return (
     <div style={{ minHeight:'100dvh', background:T.bg, display:'flex', flexDirection:'column' }}>
@@ -77,6 +82,44 @@ export default function HomeScreen({ profile, theme:T, themeId, onThemeChange, s
             <span style={{ color:T.primary, fontSize:'1.4rem', fontWeight:900 }}>↗</span>
           </div>
         )}
+        {/* Leaderboard Bar */}
+<div style={{
+  width: '100%',
+  maxWidth: 420,
+  margin: '0 auto 16px',
+  padding: '10px 16px',
+  background: T.card,
+  borderRadius: 14,
+  border: `1px solid ${T.primary}22`,
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  gap: 8,
+}}>
+  {[
+    { label: 'أفضل سلسلة', value: bestStreak ?? 0, icon: '🔥' },
+    { label: 'أعلى نقطة',  value: highScore ?? 0,  icon: '🏆' },
+    { label: 'الجولات',    value: totalGames ?? 0,  icon: '🎮' },
+  ].map(({ label, value, icon }) => (
+    <div key={label} style={{ textAlign: 'center', flex: 1 }}>
+      <div style={{ fontSize: '1.3rem' }}>{icon}</div>
+      <div style={{
+        fontFamily: 'Tajawal, sans-serif',
+        fontWeight: 700,
+        fontSize: '1.1rem',
+        color: T.primary,
+        lineHeight: 1.2,
+      }}>{value}</div>
+      <div style={{
+        fontFamily: 'Tajawal, sans-serif',
+        fontSize: '0.65rem',
+        color: T.text,
+        opacity: 0.5,
+      }}>{label}</div>
+    </div>
+  ))}
+</div>
+
 
         {/* CTA */}
         <button

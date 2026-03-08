@@ -8,9 +8,9 @@ export default function DifficultySelect({ theme: T, onSelect, onBack }) {
   const iconBg     = isDark ? '#2a2a2a' : '#f5f5f5'
 
   const levels = [
-    { id: 'easy',   name: 'سهل',   emoji: '🌱', desc: 'للمبتدئين',      color: '#52c41a', mult: 1 },
-    { id: 'medium', name: 'متوسط', emoji: '⚡', desc: 'تحدٍّ معتدل',    color: '#f0a500', mult: 2 },
-    { id: 'hard',   name: 'صعب',   emoji: '🔥', desc: 'للمحترفين فقط', color: '#ff4d4f', mult: 3 },
+    { id: 'easy',   name: 'سهل',   emoji: '🌱'},
+    { id: 'medium', name: 'متوسط', emoji: '⚡'},
+    { id: 'hard',   name: 'صعب',   emoji: '🔥' },
   ]
 
   return (
