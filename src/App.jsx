@@ -15,6 +15,8 @@ import ResultScreen       from './components/ResultScreen'
 import PuzzleSelect       from './components/PuzzleSelect'
 import ArabicWordle       from './components/ArabicWordle'
 import Sudoku             from './components/Sudoku'
+import Leaderboard   from './components/Leaderboard'
+import { useLeaderboard } from './hooks/useLeaderboard'
 
 function shuffle(arr) {
   const a = [...arr]
@@ -50,6 +52,7 @@ export default function App() {
   useEffect(() => { if (!themes[themeId]) setThemeId(defaultTheme) }, [])
 
   const sounds = useSound(soundEnabled)
+  const { submitScore } = useLeaderboard()
 
   const maxScore = useMemo(() => {
     const m = difficulty === 'mixed' ? 2 : ({ easy:1, medium:2, hard:3 }[difficulty] || 1)
@@ -58,10 +61,31 @@ export default function App() {
 
   // ── Navigation ────────────────────────────────────────────────
   const handleStart = () => {
-    sounds.click()
-    if (!profile) { setScreen('profile'); return }
-    setScreen('category')
+  sounds.click()
+
+  // ── TEMP Firebase test ──
+  const test = async () => {
+    try {
+      const { collection, addDoc } = await import('firebase/firestore')
+      const { db } = await import('./firebase')
+      await addDoc(collection(db, 'leaderboard'), {
+        name: 'اختبار', avatar: '🎯', score: 100,
+        category: 'science', difficulty: 'easy',
+        correct: 8, total: 10, accuracy: 80,
+        createdAt: new Date(),
+      })
+      console.log('✅ Firebase connected!')
+    } catch (e) {
+      console.error('❌ Firebase error:', e)
+    }
   }
+  test()
+  // ── END TEMP ──
+
+  if (!profile) { setScreen('profile'); return }
+  setScreen('category')
+}
+
 
   const handleCategory = (id) => {
     sounds.click()
@@ -97,7 +121,20 @@ export default function App() {
 
   // ✅ now receives { score, streak, correct }
   const handleFinish = ({ score, streak, correct }) => {
-    setLastResult({ score, streak, correct })
+  setLastResult({ score, streak, correct })
+
+  // ✅ submit to Firebase
+  if (profile && score > 0) {
+    submitScore({
+      name:       profile.name,
+      avatar:     profile.avatar,
+      score,
+      category:   categoryId,
+      difficulty,
+      correct:    correct ?? 0,
+      total:      gameQuestions.length,
+    })
+  }
 
     const isWin = maxScore > 0 && score / maxScore >= 0.5
 
@@ -153,7 +190,7 @@ export default function App() {
     <div style={{ background: theme.bg, minHeight: '100dvh', position: 'relative' }}>
       <AnimatedBackground theme={theme} />
       <div style={{ position: 'relative', zIndex: 1 }}>
-        {screen === 'home'       && <HomeScreen profile={profile} theme={theme} themeId={safeId} onThemeChange={id => { setThemeId(id); sounds.click() }} soundEnabled={soundEnabled} onSoundToggle={() => setSoundEnabled(s => !s)} onStart={handleStart} onEditProfile={() => setScreen('profile')} />}
+        {screen === 'home'       && <HomeScreen profile={profile} theme={theme} themeId={safeId} onThemeChange={id => { setThemeId(id); sounds.click() }} soundEnabled={soundEnabled} onSoundToggle={() => setSoundEnabled(s => !s)} onStart={handleStart} onEditProfile={()=>setScreen('profile')} onStats={()=>setScreen('stats')} onLeaderboard={() => setScreen('leaderboard')} />}
         {screen === 'profile'    && <ProfileSetup initialProfile={profile} theme={theme} onSave={handleSave} />}
         {screen === 'category'   && <CategorySelect theme={theme} difficulty={difficulty} onSelect={handleCategory} onBack={handleHome} />}
         {screen === 'puzzles'    && <PuzzleSelect theme={theme} onSelect={handlePuzzle} onBack={() => setScreen('category')} />}
@@ -173,9 +210,8 @@ export default function App() {
           onHome={handleHome}
           onUpdateBestScore={handleBest}
         />}
-        {screen === 'stats' && (<StatsScreen stats={stats} profile={profile} theme={theme} onBack={() => setScreen('home')}
-  />
-)}
+        {screen === 'stats' && (<StatsScreen stats={stats} profile={profile} theme={theme} onBack={() => setScreen('home')} />)}
+        {screen === 'leaderboard' && (<Leaderboard theme={theme} onBack={() => setScreen('home')} />)}
 
       </div>
     </div>

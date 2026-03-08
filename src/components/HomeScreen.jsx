@@ -1,123 +1,224 @@
+import { useState } from 'react'
+import GlassCard from './GlassCard'
 import ThemeSwitcher from './ThemeSwitcher'
 import SoundToggle from './SoundToggle'
 
-export default function HomeScreen({ profile, theme:T, themeId, onThemeChange, soundEnabled, onSoundToggle, onStart, onEditProfile }) {
+export default function HomeScreen({
+  profile, theme, themeId, onThemeChange,
+  soundEnabled, onSoundToggle,
+  onStart, onEditProfile, onStats,onLeaderboard
+}) {
+  const [pressed, setPressed] = useState(false)
+
   return (
-    <div style={{ minHeight:'100dvh', background:T.bg, display:'flex', flexDirection:'column' }}>
+    <div style={{
+      minHeight: '100dvh',
+      background: theme.bg,
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: '24px 20px',
+      gap: '20px',
+      position: 'relative',
+    }}>
 
-      {/* Nav */}
-      <nav style={{
-        display:'flex', justifyContent:'space-between', alignItems:'center',
-        padding:'14px 24px', borderBottom:`2px solid ${T.border}`,
+      {/* Top bar */}
+      <div style={{
+        position: 'absolute',
+        top: '20px', left: '20px', right: '20px',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
       }}>
-        <span style={{ fontFamily:'IBM Plex Mono,monospace', fontSize:'0.75rem', fontWeight:700, color:T.textMuted, letterSpacing:'0.1em' }}>
-          QUIZ // 2026
-        </span>
-        <div style={{ display:'flex', gap:'10px', alignItems:'center' }}>
-          <SoundToggle enabled={soundEnabled} onToggle={onSoundToggle} theme={T} />
-          <ThemeSwitcher currentTheme={themeId} onThemeChange={onThemeChange} />
-        </div>
-      </nav>
-
-      {/* Hero block */}
-      <div style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:'32px 24px', gap:'24px' }}>
-
-        {/* Tag */}
-        <div className="animate-fadeInUp" style={{
-          fontFamily:'IBM Plex Mono,monospace', fontSize:'0.7rem', letterSpacing:'0.12em',
-          color:T.textMuted, border:`1.5px solid ${T.border}`, padding:'4px 14px', borderRadius:'2px',
+        <SoundToggle enabled={soundEnabled} onToggle={onSoundToggle} theme={theme} />
+        <GlassCard variant="pill" style={{
+          padding: '5px 14px',
+          color: theme.textSubtle,
+          fontSize: '0.72rem',
+          fontFamily: 'Cairo, sans-serif',
+          letterSpacing: '0.5px',
         }}>
-          مسابقة تفاعلية ◆ INTERACTIVE QUIZ
-        </div>
-
-        {/* Headline — GRIPH big chunky block */}
-        <div className="animate-fadeInUp delay-1" style={{ textAlign:'center', lineHeight:0.9 }}>
-          <div style={{
-            fontFamily:'Tajawal,sans-serif', fontWeight:900,
-            fontSize:'clamp(4rem,15vw,9rem)',
-            color:T.text, letterSpacing:'-0.03em', display:'block',
-          }}>
-            مسابقة
-          </div>
-          {/* Outlined accent word — GRIPH signature */}
-          <div style={{
-            fontFamily:'Tajawal,sans-serif', fontWeight:900,
-            fontSize:'clamp(4rem,15vw,9rem)',
-            color: T.id==='dark' ? 'transparent' : 'transparent',
-            WebkitTextStroke: `4px ${T.primary}`,
-            letterSpacing:'-0.03em', display:'block',
-            textShadow: `6px 6px 0px ${T.primary}44`,
-          }}>
-            المعرفة
-          </div>
-        </div>
-
-        {/* Profile row */}
-        {profile && (
-          <div className="animate-fadeInUp delay-2"
-            onClick={onEditProfile}
-            style={{
-              display:'flex', alignItems:'center', gap:'14px',
-              padding:'12px 18px', cursor:'pointer',
-              background:T.bgCard, border:`2px solid ${T.border}`,
-              borderRadius:'2px', boxShadow:T.shadowCard,
-              width:'100%', maxWidth:'380px',
-              transition:'transform 0.1s, box-shadow 0.1s',
-            }}
-            onMouseEnter={e=>{e.currentTarget.style.transform='translate(-2px,-2px)';e.currentTarget.style.boxShadow=`7px 7px 0 ${T.primary}55`}}
-            onMouseLeave={e=>{e.currentTarget.style.transform='translate(0,0)';e.currentTarget.style.boxShadow=T.shadowCard}}
-          >
-            <span style={{ fontSize:'2.2rem' }}>{profile.avatar||'🎯'}</span>
-            <div style={{ flex:1 }}>
-              <div style={{ color:T.text, fontFamily:'Tajawal,sans-serif', fontWeight:800, fontSize:'1rem' }}>{profile.name}</div>
-              <div style={{ color:T.textMuted, fontFamily:'IBM Plex Mono,monospace', fontSize:'0.72rem', marginTop:'2px' }}>
-                BEST: {profile.bestScore||0}pts · CLICK TO EDIT
-              </div>
-            </div>
-            <span style={{ color:T.primary, fontSize:'1.4rem', fontWeight:900 }}>↗</span>
-          </div>
-        )}
-
-        {/* CTA */}
-        <button
-          className="animate-fadeInUp delay-3"
-          onClick={onStart}
-          style={{
-            width:'100%', maxWidth:'380px', padding:'20px',
-            fontFamily:'Tajawal,sans-serif', fontWeight:900,
-            fontSize:'1.3rem', letterSpacing:'0.03em',
-            background:T.primary, color:T.primaryText,
-            border:`2px solid ${T.primary}`,
-            borderRadius:'2px', boxShadow:T.shadowHero,
-            cursor:'pointer', transition:'transform 0.1s, box-shadow 0.1s',
-          }}
-          onMouseEnter={e=>{e.currentTarget.style.transform='translate(-2px,-2px)';e.currentTarget.style.boxShadow=`10px 10px 0 ${T.secondary}`}}
-          onMouseLeave={e=>{e.currentTarget.style.transform='translate(0,0)';e.currentTarget.style.boxShadow=T.shadowHero}}
-        >
-          ابدأ الآن ↗
-        </button>
-
-        {/* Scrolling ticker */}
-        <div className="animate-fadeInUp delay-4" style={{
-          width:'100vw', overflow:'hidden',
-          borderTop:`2px solid ${T.border}`, borderBottom:`2px solid ${T.border}`,
-          padding:'10px 0', background:T.bgAccent,
-        }}>
-          <div style={{ display:'flex', whiteSpace:'nowrap', animation:'ticker 20s linear infinite' }}>
-            {[0,1].map(i=>(
-              <span key={i} style={{ fontFamily:'Tajawal,sans-serif', fontWeight:800, fontSize:'0.85rem', color:'#ffffff', letterSpacing:'0.05em' }}>
-                {['علوم','تاريخ','جغرافيا','رياضة','فنون','تكنولوجيا','دين','كَلِمَة','سودوكو'].map(c=>`  ◆ ${c}  `).join('')}
-              </span>
-            ))}
-          </div>
-        </div>
+          مسابقة المعرفة
+        </GlassCard>
       </div>
+
+      {/* Hero */}
+      <div className="animate-fadeInUp" style={{ textAlign: 'center', marginTop: '40px' }}>
+        <div style={{
+          fontSize: 'clamp(4rem, 15vw, 7rem)',
+          lineHeight: 1,
+          marginBottom: '12px',
+          filter: `drop-shadow(${theme.glow})`,
+          animation: 'pulse 3s ease infinite',
+        }}>
+          🏆
+        </div>
+        <h1 style={{
+          fontFamily: 'Cairo, sans-serif',
+          fontWeight: 900,
+          fontSize: 'clamp(2rem, 7vw, 3.2rem)',
+          color: theme.text,
+          marginBottom: '8px',
+          lineHeight: 1.2,
+          textShadow: `0 2px 20px ${theme.primary}55`,
+        }}>
+          مسابقة المعرفة
+        </h1>
+        <p style={{
+          color: theme.textMuted,
+          fontSize: 'clamp(0.95rem, 3.5vw, 1.1rem)',
+          fontFamily: 'Noto Naskh Arabic, serif',
+          maxWidth: '320px',
+          margin: '0 auto',
+          lineHeight: 1.6,
+        }}>
+          اختبر معلوماتك في مختلف المجالات وتحدَّ نفسك
+        </p>
+      </div>
+
+      {/* Profile card */}
+      {profile && (
+        <GlassCard
+          variant="card"
+          shimmer
+          className="animate-fadeInUp delay-1"
+          onClick={onEditProfile}
+          style={{
+            padding: '16px 20px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '14px',
+            cursor: 'pointer',
+            width: '100%',
+            maxWidth: '360px',
+            '--glass-tint': `${theme.primary}12`,
+            '--glass-tint-border': `${theme.primary}28`,
+          }}
+        >
+          <span style={{ fontSize: '2.2rem' }}>{profile.avatar || '🎯'}</span>
+          <div style={{ flex: 1, textAlign: 'right' }}>
+            <div style={{
+              color: theme.text,
+              fontFamily: 'Cairo, sans-serif',
+              fontWeight: 700, fontSize: '1rem',
+            }}>
+              {profile.name}
+            </div>
+            <div style={{ color: theme.textMuted, fontSize: '0.8rem' }}>
+              أفضل نتيجة: {profile.bestScore || 0} نقطة · ✏️ تعديل
+            </div>
+          </div>
+        </GlassCard>
+      )}
+
+      {/* Start button */}
+      <GlassCard
+        as="button"
+        variant="btn"
+        shimmer
+        liquid
+        className="animate-fadeInUp delay-2"
+        onClick={() => { setPressed(true); onStart() }}
+        onMouseDown={() => setPressed(true)}
+        onMouseUp={() => setPressed(false)}
+        onMouseLeave={() => setPressed(false)}
+        onTouchStart={() => setPressed(true)}
+        onTouchEnd={() => setPressed(false)}
+        style={{
+          width: '100%',
+          maxWidth: '360px',
+          padding: '18px',
+          borderRadius: '16px',
+          background: `linear-gradient(135deg, ${theme.primary}cc, ${theme.secondary}aa)`,
+          color: '#fff',
+          fontSize: 'clamp(1.1rem, 4vw, 1.3rem)',
+          fontFamily: 'Cairo, sans-serif',
+          fontWeight: 800,
+          border: '1px solid rgba(255,255,255,0.28)',
+          boxShadow: `0 8px 30px ${theme.primary}55, inset 0 1px 0 rgba(255,255,255,0.3)`,
+          cursor: 'pointer',
+          transform: pressed ? 'scale(0.97)' : 'scale(1)',
+          transition: 'all 0.15s ease',
+          letterSpacing: '0.5px',
+        }}
+      >
+        🚀 ابدأ المسابقة
+      </GlassCard>
+
+      {/* Stats button */}
+      <GlassCard
+        as="button"
+        variant="card"
+        className="animate-fadeInUp delay-3"
+        onClick={onStats}
+        style={{
+          width: '100%',
+          maxWidth: '360px',
+          padding: '15px',
+          borderRadius: '16px',
+          color: theme.textMuted,
+          fontSize: '1rem',
+          fontFamily: 'Cairo, sans-serif',
+          fontWeight: 700,
+          cursor: 'pointer',
+          textAlign: 'center',
+          border: `1px solid rgba(255,255,255,0.1)`,
+        }}
+      >
+        📊 إحصائياتي
+      </GlassCard>
+      
+      {/* Leaderboard button */}
+          <GlassCard
+          as="button"
+         variant="card"
+         className="animate-fadeInUp delay-4"
+         onClick={onLeaderboard}
+         style={{
+          width: '100%', maxWidth: '360px',
+          padding: '15px', borderRadius: '16px',
+          color: '#ffd60a', fontSize: '1rem',
+        fontFamily: 'Cairo, sans-serif', fontWeight: 700,
+          cursor: 'pointer', textAlign: 'center',
+        '--glass-tint': 'rgba(255,214,10,0.08)',
+      '--glass-tint-border': 'rgba(255,214,10,0.2)',
+  }}
+>
+  🏆 المتصدرون
+</GlassCard>
+
+
+      {/* Theme switcher */}
+      <GlassCard
+        variant="card"
+        className="animate-fadeInUp delay-4"
+        style={{
+          width: '100%',
+          maxWidth: '360px',
+          padding: '16px 18px',
+        }}
+      >
+        <div style={{
+          color: theme.textMuted, fontSize: '0.78rem',
+          textAlign: 'center', marginBottom: '12px',
+          fontFamily: 'Cairo, sans-serif',
+        }}>
+          اختر المظهر
+        </div>
+        <ThemeSwitcher currentTheme={themeId} onThemeChange={onThemeChange} />
+      </GlassCard>
 
       {/* Footer */}
-      <div style={{ padding:'12px 24px', borderTop:`2px solid ${T.border}`, display:'flex', justifyContent:'space-between' }}>
-        <span style={{ fontFamily:'IBM Plex Mono,monospace', fontSize:'0.68rem', color:T.textSubtle }}>© 2026 مسابقة</span>
-        <span style={{ fontFamily:'IBM Plex Mono,monospace', fontSize:'0.68rem', color:T.textSubtle }}>8 CATS · PUZZLES</span>
+      <div className="animate-fadeInUp delay-5" style={{
+        color: theme.textSubtle,
+        fontSize: '0.72rem',
+        textAlign: 'center',
+        fontFamily: 'Cairo, sans-serif',
+      }}>
+        ٨ فئات · ٣ مستويات · ألعاب وألغاز
       </div>
+
     </div>
   )
 }
