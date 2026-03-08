@@ -61,6 +61,7 @@ export default function App() {
 
   // ── Navigation ────────────────────────────────────────────────
   const handleStart = () => {
+    alert('handleStart fired') // temp
   sounds.click()
 
   // ── TEMP Firebase test ──

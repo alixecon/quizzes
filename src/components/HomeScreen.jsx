@@ -119,7 +119,7 @@ export default function HomeScreen({
         shimmer
         liquid
         className="animate-fadeInUp delay-2"
-        onClick={() => { setPressed(true); onStart() }}
+        onClick={() => { console.log('BUTTON CLICKED'); setPressed(true); onStart() }}
         onMouseDown={() => setPressed(true)}
         onMouseUp={() => setPressed(false)}
         onMouseLeave={() => setPressed(false)}
