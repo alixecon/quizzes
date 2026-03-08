@@ -23,16 +23,23 @@ export function useSound(enabled) {
   }, [enabled, ctx])
 
   const randomSpin = useCallback(() => {
-    if (!enabled) return
-    const base = 320
-    const steps = 10
-    const gap = 90   // ms
-    for (let i = 0; i < steps; i++) {
-      const f = base + i * 40         // rising pitch
-      const v = 0.08 + i * 0.01       // slightly louder
-      setTimeout(() => playTone(f, 0.09, 'sine', v), i * gap)
-    }
-  }, [enabled, playTone])
+  if (!enabled) return
+  const steps = 14
+  const gapStart = 70   // fast at start
+  const gapEnd   = 160  // slower at end
+
+  for (let i = 0; i < steps; i++) {
+    const t = i / (steps - 1)
+    const gap = gapStart + (gapEnd - gapStart) * t   // ease-out slowdown
+    const when = i === 0 ? 0 : gapStart * i          // coarse is fine here
+
+    setTimeout(() => {
+      // percussive tick
+      playTone(500 + i * 8, 0.045, 'square', 0.16)
+    }, when)
+  }
+}, [enabled, playTone])
+
 
   const sounds = {
     correct: () => {
