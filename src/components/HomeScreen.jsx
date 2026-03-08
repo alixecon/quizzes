@@ -33,7 +33,7 @@ export default function HomeScreen({ profile, theme:T, themeId, onThemeChange, s
         {/* Headline — GRIPH big chunky block */}
         <div className="animate-fadeInUp delay-1" style={{ textAlign:'center', lineHeight:0.9 }}>
           <div style={{
-            fontFamily:'Tajawal,sans-serif', fontWeight:900,
+            fontFamily:'Alyamama,Tajawal,sans-serif', fontWeight:900,
             fontSize:'clamp(4rem,15vw,9rem)',
             color:T.text, letterSpacing:'-0.03em', display:'block',
           }}>
@@ -41,7 +41,7 @@ export default function HomeScreen({ profile, theme:T, themeId, onThemeChange, s
           </div>
           {/* Outlined accent word — GRIPH signature */}
           <div style={{
-            fontFamily:'Tajawal,sans-serif', fontWeight:900,
+            fontFamily:'Alyamama,Tajawal,sans-serif', fontWeight:900,
             fontSize:'clamp(4rem,15vw,9rem)',
             color: T.id==='dark' ? 'transparent' : 'transparent',
             WebkitTextStroke: `4px ${T.primary}`,
