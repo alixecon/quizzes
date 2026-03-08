@@ -32,8 +32,26 @@ export default function QuizScreen({ questions, difficulty, mode, theme:T, sound
   },[idx])
 
   const next = () => {
-    if (idx+1>=questions.length){onFinish(score);sounds.complete()}
-    else{setIdx(i=>i+1);setSelected(null);setAnswered(false)}
+    if (idx+1>=questions.length) {
+      // Update localStorage stats when game ends
+      const prev = parseInt(localStorage.getItem('highScore') || '0');
+      if (score > prev) localStorage.setItem('highScore', score);
+
+      // Calculate streak (example logic, adjust as needed)
+      const prevStreak = parseInt(localStorage.getItem('bestStreak') || '0');
+      // If you have a streak variable, use it; otherwise, streak logic can be customized
+      // For now, just increment streak if all correct
+      const finalStreak = score === questions.length * 10 * mult ? prevStreak + 1 : prevStreak;
+      if (finalStreak > prevStreak) localStorage.setItem('bestStreak', finalStreak);
+
+      const games = parseInt(localStorage.getItem('totalGames') || '0');
+      localStorage.setItem('totalGames', games + 1);
+
+      onFinish(score);
+      sounds.complete();
+    } else {
+      setIdx(i=>i+1);setSelected(null);setAnswered(false);
+    }
   }
 
   const optStyle = (i) => {
