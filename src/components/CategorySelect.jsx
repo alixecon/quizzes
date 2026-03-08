@@ -11,14 +11,14 @@ const CATEGORIES = [
   { id:'general',    name:'معلومات عامة', emoji:'🧠', color:'#ff6cae' },
 ]
 
-export default function CategorySelect({ theme:T, sounds,onSelect, onBack }) {
+export default function CategorySelect({ theme:T, sounds, onSelect, onBack }) {
   const [spinning,    setSpinning]   = useState(false)
   const [highlighted, setHighlighted]= useState(null)
 
   const handleRandom = () => {
     if (spinning) return
     setSpinning(true)
-    sounds?.randomSpin?.()   // suspense sound once 
+    if (sounds && sounds.randomSpin) sounds.randomSpin()   // play suspense once
 
     let count = 0
     const iv = setInterval(() => {
@@ -29,11 +29,15 @@ export default function CategorySelect({ theme:T, sounds,onSelect, onBack }) {
         const winner = CATEGORIES[Math.floor(Math.random()*CATEGORIES.length)]
         setHighlighted(winner.id)
         setSpinning(false)
-        setTimeout(()=>{ setHighlighted(null); onSelect(winner.id) }, 900)
-        sounds?.start?.()        // celebratory sound at lock-in
+        setTimeout(() => {
+          setHighlighted(null)
+          onSelect(winner.id)
+        }, 900)
+        if (sounds && sounds.start) sounds.start()         // lock-in sound
       }
     }, 100)
   }
+
   // Explicit per-theme values — never rely on T.text for cards
   const isDark     = T.id === 'dark'
   const cardBg     = isDark ? '#1e1e1e' : '#ffffff'
