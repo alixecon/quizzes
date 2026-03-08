@@ -84,7 +84,7 @@ export default function QuizScreen({ questions, difficulty, mode, theme:T, sound
             color:T.textMuted, fontFamily:'IBM Plex Mono,monospace', fontSize:'0.8rem',
             boxShadow:`2px 2px 0 ${T.border}`,
           }}
-        >← back</button>
+        >← العودة</button>
         <div style={{
           padding:'6px 14px', borderRadius:'2px',
           background:T.bgCard, border:`2px solid ${T.border}`,
