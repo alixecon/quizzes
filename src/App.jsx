@@ -87,7 +87,7 @@ export default function App() {
       <div style={{ position:'relative', zIndex:1 }}>
         {screen==='home'       && <HomeScreen profile={profile} theme={theme} themeId={safeId} onThemeChange={id=>{setThemeId(id);sounds.click()}} soundEnabled={soundEnabled} onSoundToggle={()=>setSoundEnabled(s=>!s)} onStart={handleStart} onEditProfile={()=>setScreen('profile')} />}
         {screen==='profile'    && <ProfileSetup initialProfile={profile} theme={theme} onSave={handleSave} />}
-        {screen==='category'   && <CategorySelect theme={theme} onSelect={handleCategory} onBack={handleHome} />}
+        {screen==='category'   && <CategorySelect theme={theme} sounds={sounds} onSelect={handleCategory} onBack={handleHome} />}
         {screen==='puzzles'    && <PuzzleSelect theme={theme} onSelect={handlePuzzle} onBack={()=>setScreen('category')} />}
         {screen==='wordle'     && <ArabicWordle theme={theme} sounds={sounds} onBack={()=>setScreen('puzzles')} />}
         {screen==='sudoku'     && <Sudoku theme={theme} sounds={sounds} onBack={()=>setScreen('puzzles')} />}

@@ -1,6 +1,5 @@
 import { useCallback } from 'react'
 
-// Pure Web Audio API — no external assets required
 export function useSound(enabled) {
   const ctx = useCallback(() => {
     try { return new (window.AudioContext || window.webkitAudioContext)() }
@@ -23,6 +22,18 @@ export function useSound(enabled) {
     osc.stop(audioCtx.currentTime + duration)
   }, [enabled, ctx])
 
+  const randomSpin = useCallback(() => {
+    if (!enabled) return
+    const base = 320
+    const steps = 10
+    const gap = 90   // ms
+    for (let i = 0; i < steps; i++) {
+      const f = base + i * 40         // rising pitch
+      const v = 0.08 + i * 0.01       // slightly louder
+      setTimeout(() => playTone(f, 0.09, 'sine', v), i * gap)
+    }
+  }, [enabled, playTone])
+
   const sounds = {
     correct: () => {
       playTone(523, 0.15, 'sine', 0.2)
@@ -44,6 +55,7 @@ export function useSound(enabled) {
         setTimeout(() => playTone(f, 0.22, 'sine', 0.18), i * 120)
       )
     },
+    randomSpin,   // ← new
   }
 
   return sounds

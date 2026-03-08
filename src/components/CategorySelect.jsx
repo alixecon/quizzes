@@ -15,6 +15,25 @@ export default function CategorySelect({ theme:T, onSelect, onBack }) {
   const [spinning,    setSpinning]   = useState(false)
   const [highlighted, setHighlighted]= useState(null)
 
+  const handleRandom = () => {
+    if (spinning) return
+    setSpinning(true)
+    sounds?.randomSpin && sounds.randomSpin()   // suspense sound once
+
+    let count = 0
+    const iv = setInterval(() => {
+      setHighlighted(CATEGORIES[Math.floor(Math.random()*CATEGORIES.length)].id)
+      count++
+      if (count >= 16) {
+        clearInterval(iv)
+        const winner = CATEGORIES[Math.floor(Math.random()*CATEGORIES.length)]
+        setHighlighted(winner.id)
+        setSpinning(false)
+        setTimeout(()=>{ setHighlighted(null); onSelect(winner.id) }, 900)
+        sounds?.start && sounds.start()         // celebratory sound at lock-in
+      }
+    }, 100)
+  }
   // Explicit per-theme values — never rely on T.text for cards
   const isDark     = T.id === 'dark'
   const cardBg     = isDark ? '#1e1e1e' : '#ffffff'
