@@ -58,10 +58,9 @@ export default function App() {
   const handlePuzzle   = (id) => { sounds.click(); setScreen(id==='wordle'?'wordle':'sudoku') }
   const handleDifficulty = (d) => {
     sounds.click(); setDifficulty(d)
-    let pool = getQuestions(selectedCategory, d)
-    if (categoryId) pool = pool.filter(q=>q.category===categoryId)
-    if (!pool.length) pool = questions.filter(q=>q.difficulty===d)
-    if (!pool.length) pool = questions
+    let pool = getQuestions(categoryId, d)
+    if (!pool.length) pool = getQuestions(null, d)
+    if (!pool.length) pool = getQuestions(null, null)
     setGameQ(shuffle(pool).slice(0,10))
     sounds.start(); setScreen('quiz')
   }
