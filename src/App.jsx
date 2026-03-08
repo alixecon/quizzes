@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect } from 'react'
 import { useLocalStorage } from './hooks/useLocalStorage'
 import { useSound } from './hooks/useSound'
 import { themes, defaultTheme } from './styles/themes'
-import { questions } from './data/questions'
+import { getQuestions } from './data/index'
 
 import AnimatedBackground    from './components/AnimatedBackground'
 import HomeScreen            from './components/HomeScreen'
@@ -80,10 +80,10 @@ export default function App() {
   const handleDifficultySelect = (diff) => {
     sounds.click()
     setDifficulty(diff)
-    let pool = questions.filter(q => q.difficulty === diff)
+    let pool = getQuestions(selectedCategory, diff)
     if (categoryId) pool = pool.filter(q => q.category === categoryId)
-    if (pool.length === 0) pool = questions.filter(q => q.difficulty === diff)
-    if (pool.length === 0) pool = questions
+    if (pool.length === 0) pool = getQuestions(selectedCategory, diff)
+    if (pool.length === 0) pool = getQuestions(selectedCategory, "easy")
     setGameQuestions(shuffleArray(pool).slice(0, QUESTIONS_PER_GAME))
     sounds.start()
     setScreen('quiz')
