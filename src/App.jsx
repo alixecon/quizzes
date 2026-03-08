@@ -92,7 +92,7 @@ export default function App() {
         {screen==='wordle'     && <ArabicWordle theme={theme} sounds={sounds} onBack={()=>setScreen('puzzles')} />}
         {screen==='sudoku'     && <Sudoku theme={theme} sounds={sounds} onBack={()=>setScreen('puzzles')} />}
         {screen==='difficulty' && <DifficultySelect theme={theme} onSelect={handleDifficulty} unlocked={unlocked} onBack={()=>setScreen('category')} />}
-        {screen==='quiz' && gameQuestions.length>0 && <QuizScreen questions={gameQuestions} difficulty={difficulty} mode="category" theme={theme} sounds={sounds} onFinish={handleFinish} />}
+        {screen==='quiz' && gameQuestions.length>0 && <QuizScreen questions={gameQuestions} difficulty={difficulty} mode="category" theme={theme} sounds={sounds} soundEnabled={soundEnabled} onSoundToggle={()=>setSoundEnabled(s=>!s)} onFinish={handleFinish} onBack={()=>setScreen('category')} />}
         {screen==='result'     && <ResultScreen score={lastScore} total={gameQuestions.length} maxScore={maxScore} profile={profile} theme={theme} onRestart={handleRestart} onHome={handleHome} onUpdateBestScore={handleBest} />}
       </div>
     </div>

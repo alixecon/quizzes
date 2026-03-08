@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 
 const TIMER_SECS = 20
 
-export default function QuizScreen({ questions, difficulty, mode, theme:T, sounds, onFinish }) {
+export default function QuizScreen({ questions, difficulty, mode, theme:T, sounds, soundEnabled, onSoundToggle, onFinish, onBack }) {
   const [idx,      setIdx]      = useState(0)
   const [selected, setSelected] = useState(null)
   const [answered, setAnswered] = useState(false)
@@ -75,7 +75,16 @@ export default function QuizScreen({ questions, difficulty, mode, theme:T, sound
     <div style={{ minHeight:'100dvh', background:T.bg, display:'flex', flexDirection:'column', padding:'20px 20px 32px' }}>
 
       {/* Header */}
-      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'14px' }}>
+      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'14px', gap:'8px' }}>
+        <button
+          onClick={onBack}
+          style={{
+            padding:'6px 12px', borderRadius:'2px', cursor:'pointer',
+            background:'transparent', border:`2px solid ${T.border}`,
+            color:T.textMuted, fontFamily:'IBM Plex Mono,monospace', fontSize:'0.8rem',
+            boxShadow:`2px 2px 0 ${T.border}`,
+          }}
+        >← back</button>
         <div style={{
           padding:'6px 14px', borderRadius:'2px',
           background:T.bgCard, border:`2px solid ${T.border}`,
@@ -84,13 +93,23 @@ export default function QuizScreen({ questions, difficulty, mode, theme:T, sound
         }}>
           {idx+1} / {questions.length}
         </div>
-        <div style={{
-          padding:'6px 16px', borderRadius:'2px',
-          background:T.primary, border:`2px solid ${T.primary}`,
-          color:T.primaryText, fontFamily:'Tajawal,sans-serif', fontWeight:800, fontSize:'0.9rem',
-          boxShadow:`2px 2px 0 ${T.border}`,
-        }}>
-          {score} نقطة
+        <div style={{ display:'flex', alignItems:'center', gap:'6px' }}>
+          <button
+            onClick={onSoundToggle}
+            style={{
+              padding:'6px 10px', borderRadius:'2px', cursor:'pointer',
+              background:'transparent', border:`2px solid ${T.border}`,
+              fontSize:'1rem', boxShadow:`2px 2px 0 ${T.border}`,
+            }}
+          >{soundEnabled ? '🔊' : '🔇'}</button>
+          <div style={{
+            padding:'6px 16px', borderRadius:'2px',
+            background:T.primary, border:`2px solid ${T.primary}`,
+            color:T.primaryText, fontFamily:'Tajawal,sans-serif', fontWeight:800, fontSize:'0.9rem',
+            boxShadow:`2px 2px 0 ${T.border}`,
+          }}>
+            {score} نقطة
+          </div>
         </div>
       </div>
 
