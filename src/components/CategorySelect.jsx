@@ -170,6 +170,28 @@ if (sounds && sounds.randomSpin) sounds.randomSpin() //lock-in sound for random 
           <span style={{ color:T.secondary, fontSize:'1.4rem', fontWeight:900 }}>↗</span>
         </button>
       </div>
+      <button
+        className="animate-scaleIn delay-5"
+          onClick={() => onSelect('blocksort')}
+        style={{
+          gridColumn:'span 2', padding:'16px 20px',
+          background:cardBg, border:`2px solid ${cardBorder}`,
+          borderRadius:'2px', boxShadow:cardShadow, cursor:'pointer',
+          display:'flex', alignItems:'center', gap:'16px', transition:'all 0.12s ease',
+          }}
+          onMouseEnter={e=>{ e.currentTarget.style.transform='translate(-2px,-2px)'; e.currentTarget.style.boxShadow=`5px 5px 0 ${T.primary}` }}
+          onMouseLeave={e=>{ e.currentTarget.style.transform='translate(0,0)'; e.currentTarget.style.boxShadow=cardShadow }}
+>
+         <div style={{ width:'52px', height:'52px', borderRadius:'2px', background:iconBg,
+          border:`2px solid ${T.primary}55`, display:'flex', alignItems:'center',
+          justifyContent:'center', fontSize:'1.6rem', flexShrink:0 }}>🍱</div>
+           <div style={{ textAlign:'right', flex:1 }}>
+         <div style={{ color:cardText, fontFamily:'Tajawal,sans-serif', fontWeight:800, fontSize:'1rem' }}>رتّب المعرفة</div>
+        <div style={{ color:T.primary, fontFamily:'IBM Plex Mono,monospace', fontSize:'0.72rem', marginTop:'3px', letterSpacing:'0.05em' }}>BLOCK SORT · NEW</div>
+       </div>
+     <span style={{ color:T.primary, fontSize:'1.4rem', fontWeight:900 }}>↗</span>
+  </button>
+
 
       {/* Back */}
       <button

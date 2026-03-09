@@ -14,6 +14,7 @@ import ResultScreen       from './components/ResultScreen'
 import PuzzleSelect       from './components/PuzzleSelect'
 import ArabicWordle       from './components/ArabicWordle'
 import Sudoku             from './components/Sudoku'
+import BlockSortMode from './components/BlockSortMode'
 
 function shuffle(arr) {
   const a = [...arr]
@@ -54,8 +55,9 @@ export default function App() {
   }, [gameQuestions, difficulty])
 
   const handleStart = () => { sounds.click(); if (!profile) { setScreen('profile'); return }; setScreen('category') }
-  const handleCategory = (id) => { sounds.click(); if (id==='puzzles'){setScreen('puzzles');return}; setCategoryId(id); setScreen('difficulty') }
+  const handleCategory = (id) => { sounds.click(); if (id==='puzzles'){setScreen('puzzles');return};if (id==='blocksort') { handleBlockSort();return }; setCategoryId(id); setScreen('difficulty') }
   const handlePuzzle   = (id) => { sounds.click(); setScreen(id==='wordle'?'wordle':'sudoku') }
+  const handleBlockSort = () => { sounds.click(); setScreen('blocksort') }
   const handleDifficulty = (d) => {
     sounds.click(); setDifficulty(d)
     let pool = getQuestions(categoryId, d)
@@ -91,6 +93,7 @@ export default function App() {
         {screen==='puzzles'    && <PuzzleSelect theme={theme} onSelect={handlePuzzle} onBack={()=>setScreen('category')} />}
         {screen==='wordle'     && <ArabicWordle theme={theme} sounds={sounds} onBack={()=>setScreen('puzzles')} />}
         {screen==='sudoku'     && <Sudoku theme={theme} sounds={sounds} onBack={()=>setScreen('puzzles')} />}
+        {screen==='blocksort' && <BlockSortMode questions={getQuestions(null, null)} theme={theme} sounds={sounds} onExit={handleHome} />}
         {screen==='difficulty' && <DifficultySelect theme={theme} onSelect={handleDifficulty} unlocked={unlocked} onBack={()=>setScreen('category')} />}
         {screen==='quiz' && gameQuestions.length>0 && <QuizScreen questions={gameQuestions} difficulty={difficulty} mode="category" theme={theme} sounds={sounds} soundEnabled={soundEnabled} onSoundToggle={()=>setSoundEnabled(s=>!s)} onFinish={handleFinish} onBack={()=>setScreen('category')} />}
         {screen==='result'     && <ResultScreen score={lastScore} total={gameQuestions.length} maxScore={maxScore} profile={profile} theme={theme} onRestart={handleRestart} onHome={handleHome} onUpdateBestScore={handleBest} />}
